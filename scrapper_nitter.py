@@ -3,11 +3,16 @@ Module for scraping data from Nitter using Playwright.
 Nitter is a free and open source alternative Twitter front-end focused on privacy.
 """
 
+# Libraries for ScraperNitter
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import quote_plus
 import csv
+import time
+import random
 from playwright.sync_api import sync_playwright
+
+
 
 
 class ScraperNitter:
@@ -70,6 +75,7 @@ class ScraperNitter:
             full_url = self.domain + url
             try:
                 page.goto(full_url, timeout=30000, wait_until="networkidle")
+                time.sleep(random.uniform(2, 5))
                 html = page.content()
                 status_code = 200
             except Exception as e:
@@ -145,7 +151,7 @@ class ScraperNitter:
             for tweet in tweets:
                 writer.writerow(tweet)
 
-    def get_tweets(self, query, since="", until="", near="", filters={}, excludes={}):
+    def get_tweets(self, query, since="", until="", near="", filters={}, excludes={}, filename=None):
         url = self.__get_search_url(query, since, until, near, filters, excludes)
         cursor = ""
         while True:
@@ -164,7 +170,7 @@ class ScraperNitter:
                         f"No tweets found or bot detection, switching domain to {self.domain}"
                     )
                     continue
-                self.__save_tweets_to_csv(tweets)
+                self.__save_tweets_to_csv(tweets, filename=filename)
                 
                 if new_cursor:
                     cursor = new_cursor
@@ -177,6 +183,10 @@ class ScraperNitter:
 
 
 if __name__ == "__main__":
+    claim = "the Earth has always warmed and cooled"
+    initial_date = "2023-01-01"
+    final_date = "2023-12-31"
+    filename = f'Earth_warmed_cooled_nokeywords_search_{initial_date}_to_{final_date}.csv'
     scraper = ScraperNitter()
-    scraper.get_tweets("'climate' AND 'change'", excludes={"nativeretweets", "replies"})
-    print("Scraping completed. Tweets saved to tweets.csv.")
+    scraper.get_tweets(claim, excludes={"nativeretweets", "replies"}, filename=filename, since=initial_date, until=final_date)
+    print(f"Scraping completed. Tweets saved to {filename}.")
