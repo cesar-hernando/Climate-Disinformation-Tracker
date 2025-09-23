@@ -8,4 +8,5 @@ Make a copy of the .env file and add the correct credentials
 ```bash
 pip install -r requirements.txt
 python -m playwright install
+playwright install
 ```
