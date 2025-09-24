@@ -15,7 +15,7 @@ class QueryGenerator:
             kw_model = KeyBERT(model="AIDA-UPM/mstsb-paraphrase-multilingual-mpnet-base-v2")
             keywords = kw_model.extract_keywords(self.claim, top_n=top_n)
             keywords = [k[0] for k in keywords]
-            print(f"Extracted keywords: {keywords}")
+            print(f"Extracted keywords: {keywords}\n")
             return keywords
 
 

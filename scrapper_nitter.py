@@ -186,7 +186,7 @@ if __name__ == "__main__":
     claim = "the Earth has always warmed and cooled"
     initial_date = "2023-01-01"
     final_date = "2023-12-31"
-    filename = f'Earth_warmed_cooled_nokeywords_search_{initial_date}_to_{final_date}.csv'
+    filename = f'test_Earth_warmed_cooled_nokeywords_search_{initial_date}_to_{final_date}.csv'
     scraper = ScraperNitter()
     scraper.get_tweets(claim, excludes={"nativeretweets", "replies"}, filename=filename, since=initial_date, until=final_date)
     print(f"Scraping completed. Tweets saved to {filename}.")
