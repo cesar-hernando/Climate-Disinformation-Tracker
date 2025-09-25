@@ -145,8 +145,8 @@ if __name__ == "__main__":
     # Define the parameters of the search
     claim = "Electric vehicles are actually worse for environment than gas cars"
     initial_date = ""
-    final_date = ""
-    n = 1 # No advanced search (# of keywords - n = number of words in each clause)
+    final_date = "2009-01-12"
+    n = 1 # No advanced search if n=0 (# of keywords - n = number of words in each clause)
     filename = f'Electric_cars_worse_n_{n}_{initial_date}_to_{final_date}.csv'
     top_n = 5
     excludes={"nativeretweets", "replies"}
