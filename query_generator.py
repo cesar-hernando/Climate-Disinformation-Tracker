@@ -10,7 +10,7 @@ class QueryGenerator:
     def __init__(self, claim):
             self.claim = claim
 
-    def _extract_keywords(self, top_n):
+    def extract_keywords(self, top_n):
             """Extract keywords from text using KeyBERT"""
             kw_model = KeyBERT(model="AIDA-UPM/mstsb-paraphrase-multilingual-mpnet-base-v2")
             keywords = kw_model.extract_keywords(self.claim, top_n=top_n)
@@ -19,7 +19,7 @@ class QueryGenerator:
             return keywords
 
 
-    def build_query(self, top_n, n=2, verbose=False, keywords=None):
+    def build_query(self, n=2, verbose=False, keywords=None, top_n=None):
         """Generate OR-combinations of keywords with AND inside each group"""
 
         if keywords is None:

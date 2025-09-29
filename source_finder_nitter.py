@@ -22,13 +22,15 @@ from alignment import AlignmentModel
 import time
 import pandas as pd
 from datetime import datetime
+from datetime import date
 from collections import Counter
+import os
 
 
 class SourceFinder:
     def __init__(self, top_n=5, n=2, excludes={"nativeretweets", "replies"}, batch_size=4):
-        self.top_n = top_n
-        self.n = n
+        self.top_n = top_n # Number of keywords extracted by KeyBert
+        self.n = n # Number of keywords dropped per clause
         self.excludes = excludes
         self.batch_size = batch_size
 
@@ -60,6 +62,7 @@ class SourceFinder:
         """
         Prints a tweet with all its fields in a nice way to visualize it.
         """
+
         print("-" * separator)
         for key, value in tweet.items():
             # Capitalize the field name and replace underscores with spaces
@@ -73,21 +76,36 @@ class SourceFinder:
         print("-" * separator)
     
 
-    def run(self, claim, filename, initial_date="", final_date="", verbose=False):
+    def find_all(self, claim, initial_date="", final_date="", verbose=False):
         """
         Transforms a claim into a query for advanced search, retrieves tweets using Nitter, selects the
         tweets that align with the original claim, and obtains the oldest.
         """
         query_generator = QueryGenerator(claim)
-        query = query_generator.build_query(top_n=self.top_n, n=self.n)
+        keywords = query_generator.extract_keywords(top_n=self.top_n)
+        query = query_generator.build_query(n=self.n, keywords=keywords)
+        if initial_date == "":
+            initial_date = "2006-03-21" # Beginning of Twitter
+
+        if final_date == "":
+            final_date = date.today().strftime("%Y-%m-%d")
+
+        filename = "_".join(keywords) + f'_kpc_{self.top_n - self.n}_{initial_date}_to_{final_date}.csv' # kpc stands for keywords per clause
 
         scraper = ScraperNitter()
-        scraper.get_tweets(query=query, 
+        success = scraper.get_tweets(query=query, 
                            since=initial_date, 
                            until=final_date, 
                            excludes={"nativeretweets", "replies"}, 
                            filename=filename)
-        print(f"\nScraping completed. Tweets saved to {filename}.\n")
+        if success:
+            print(f"\nScraping completed satisfactorily. Tweets saved to {filename}.\n")
+        elif not(success) and os.path.exists(filename):
+            print(f"\nError encountered while scraping but tweets saved to {filename}.\n")
+        else:
+            print(f"\nError encountered and no tweets were retrieved.\n")
+            return None, None
+        
         tweets_list = self._csv_to_dict(filename)
 
         alignment_model = AlignmentModel()
@@ -99,11 +117,79 @@ class SourceFinder:
             oldest_aligned_tweet = alignment_model.find_first(aligned_tweets)
             print(f"\nOldest aligned tweet:\n")
             self.print_tweet(oldest_aligned_tweet)
+
+            return oldest_aligned_tweet, aligned_tweets
         else:
             print("No aligned tweets found.")
+            return None, None
+        
 
-        return oldest_aligned_tweet, aligned_tweets
+    def find_source(self, claim, initial_date="", final_date="", step=1):
+        """
+        The workflow is similar to the method find_all but here we search in steps
+        of step years, starting from the initial_date, and we stop once an aligned 
+        tweet is found.
+        """
+        query_generator = QueryGenerator(claim)
+        keywords = query_generator.extract_keywords(top_n=self.top_n)
+        query = query_generator.build_query(n=self.n, keywords=keywords)
 
+        if initial_date == "":
+            initial_date = "2006-03-21" # Beginning of Twitter
+
+        if final_date == "":
+            final_date = date.today().strftime("%Y-%m-%d")
+
+        # Extract year from date
+        initial_year = int(initial_date[:4])
+        final_year = int(final_date[:4])
+
+        prov_initial_year = initial_year
+        prov_final_year = initial_year + step
+
+        while prov_final_year <= (final_year + 1):
+            # Construct dates from the corresponding years and the original initial month and day
+            prov_initial_date = str(prov_initial_year) + initial_date[4:]
+            prov_final_date = str(prov_final_year) + initial_date[4:]
+
+            print(f"\nRetrieving tweets from {prov_initial_date} to {prov_final_date}...\n")
+            filename = "_".join(keywords) + f'_kpc_{self.top_n - self.n}_{prov_initial_date}_to_{prov_final_date}.csv' # kpc stands for keywords per clause
+
+            scraper = ScraperNitter()
+            success = scraper.get_tweets(query=query, 
+                           since=prov_initial_date, 
+                           until=prov_final_date, 
+                           excludes={"nativeretweets", "replies"}, 
+                           filename=filename)
+            if success:
+                print(f"\nScraping completed satisfactorily. Tweets saved to {filename}.\n")
+            elif not(success) and os.path.exists(filename):
+                print(f"\nError encountered while scraping but tweets saved to {filename}.\n")
+            else:
+                print(f"\nError encountered and no tweets were retrieved.\n")
+                prov_initial_year += step
+                prov_final_year += step
+                continue
+                
+            tweets_list = self._csv_to_dict(filename)
+
+            alignment_model = AlignmentModel()
+            aligned_tweets = alignment_model.batch_filter_tweets(claim, tweets_list, batch_size=self.batch_size)
+
+            if aligned_tweets:
+                oldest_aligned_tweet = alignment_model.find_first(aligned_tweets)
+                print("\nOldest aligned tweet:\n")
+                self.print_tweet(oldest_aligned_tweet)
+                return oldest_aligned_tweet, aligned_tweets
+            else:
+                print("\nNone of the tweets are aligned.\n")
+                prov_initial_year += step
+                prov_final_year += step
+                continue
+
+        print("\nNo aligned tweets were found between the dates provided\n")
+        return None, None    
+            
 
     @staticmethod
     def get_top_tweeters(aligned_tweets, N=5):
@@ -144,22 +230,30 @@ class SourceFinder:
 if __name__ == "__main__":
     # Define the parameters of the search
     claim = "Electric vehicles are actually worse for environment than gas cars"
-    initial_date = ""
-    final_date = "2009-01-12"
+    top_n = 5 # Number of keywords extracted
     n = 1 # No advanced search if n=0 (# of keywords - n = number of words in each clause)
-    filename = f'Electric_cars_worse_n_{n}_{initial_date}_to_{final_date}.csv'
-    top_n = 5
     excludes={"nativeretweets", "replies"}
-    batch_size = 4
+    batch_size = 4 
     N = 3 # Top N usernames with more tweets about a topic
 
-    # Execute the source finder tool
+    mode = 1 # 0 (find source) or 1 (retrieve all)
+
     start_time = time.time()
     source_finder = SourceFinder(top_n=top_n, n=n, excludes=excludes, batch_size=batch_size)
-    oldest_aligned_tweet, aligned_tweets = source_finder.run(claim, filename, initial_date, final_date)
-    top_tweeters = source_finder.get_top_tweeters(aligned_tweets, N)
+
+    if mode == 0:
+        initial_date = "2007-01-01"
+        final_date = "2020-01-01"
+        step = 1
+        oldest_aligned_tweet, aligned_tweets = source_finder.find_source(claim, initial_date, final_date, step)
+    
+    else: 
+        initial_date = ""
+        final_date = ""
+        oldest_aligned_tweet, aligned_tweets = source_finder.find_all(claim, initial_date, final_date)
+        top_tweeters = source_finder.get_top_tweeters(aligned_tweets=aligned_tweets, N=N)
+
     end_time = time.time()
     run_time = end_time - start_time
-    print(f"\nExecution time of the Source Finder: {run_time} s\n")
-
+    print(f"\nExecution time of the Source Finder: {run_time:1f} s\n")
 

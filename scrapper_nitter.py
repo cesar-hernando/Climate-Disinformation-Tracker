@@ -74,7 +74,7 @@ class ScraperNitter:
             page = browser.new_page()
             full_url = self.domain + url
             try:
-                page.goto(full_url, timeout=30000, wait_until="networkidle")
+                page.goto(full_url, timeout=60000, wait_until="networkidle")
                 time.sleep(random.uniform(2, 5))
                 html = page.content()
                 status_code = 200
@@ -151,24 +151,32 @@ class ScraperNitter:
             for tweet in tweets:
                 writer.writerow(tweet)
 
-    def get_tweets(self, query, since="", until="", near="", filters={}, excludes={}, filename=None):
+    def get_tweets(self, query, since="", until="", near="", filters={}, excludes={}, verbose=False, filename=None):
         url = self.__get_search_url(query, since, until, near, filters, excludes)
         cursor = ""
+        counter = 0
         while True:
-            print(f"Fetching tweets from: {self.domain + url + cursor}")
+            if verbose:
+                print(f"Fetching tweets from: {self.domain + url + cursor}")
             html_content, status_code = self.__fetch_tweets(url + cursor)
             if status_code == 200:
                 tweets, new_cursor = self.__parse_tweets(html_content)
                 if new_cursor == "finished": # No more tweets to fetch
                     print("No more tweets available.")
-                    break
+                    return True
                 if not tweets:
+                    if counter == (len(self.domains) - 1):
+                        print(
+                            f"All domains have been tried, no more tweets available."
+                        )
+                        return False
+                    
+                    counter += 1
                     self.domain = self.domains[
                         (self.domains.index(self.domain) + 1) % len(self.domains)
                     ]
-                    print(
-                        f"No tweets found or bot detection, switching domain to {self.domain}"
-                    )
+                    if verbose:
+                        print(f"No tweets found or bot detection, switching domain to {self.domain}")
                     continue
                 self.__save_tweets_to_csv(tweets, filename=filename)
                 
@@ -176,6 +184,13 @@ class ScraperNitter:
                     cursor = new_cursor
 
             else:
+                if counter == (len(self.domains) - 1):
+                    print(
+                            f"All domains have been tried, no more tweets available."
+                        )
+                    return False
+                
+                counter += 1
                 print(f"Error {status_code} from {self.domain}, switching domain.")
                 self.domain = self.domains[
                     (self.domains.index(self.domain) + 1) % len(self.domains)
