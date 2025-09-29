@@ -18,7 +18,7 @@ from playwright.sync_api import sync_playwright
 class ScraperNitter:
     def __init__(self):
         self.domains = self._get_domains()
-        self.domain = self.domains[0] if self.domains else "https://nitter.net"
+        self.domain = self.domains[2] if self.domains else "https://nitter.net"
 
     def __get_search_url(
         self, query, since="", until="", near="", filters={}, excludes={}
@@ -154,7 +154,6 @@ class ScraperNitter:
     def get_tweets(self, query, since="", until="", near="", filters={}, excludes={}, verbose=False, filename=None):
         url = self.__get_search_url(query, since, until, near, filters, excludes)
         cursor = ""
-        counter = 0
         while True:
             if verbose:
                 print(f"Fetching tweets from: {self.domain + url + cursor}")
@@ -165,36 +164,17 @@ class ScraperNitter:
                     print("No more tweets available.")
                     return True
                 if not tweets:
-                    if counter == (len(self.domains) - 1):
-                        print(
-                            f"All domains have been tried, no more tweets available."
-                        )
-                        return False
+                    print(f"No more tweets available.")
+                    return False
                     
-                    counter += 1
-                    self.domain = self.domains[
-                        (self.domains.index(self.domain) + 1) % len(self.domains)
-                    ]
-                    if verbose:
-                        print(f"No tweets found or bot detection, switching domain to {self.domain}")
-                    continue
                 self.__save_tweets_to_csv(tweets, filename=filename)
                 
                 if new_cursor:
                     cursor = new_cursor
 
             else:
-                if counter == (len(self.domains) - 1):
-                    print(
-                            f"All domains have been tried, no more tweets available."
-                        )
-                    return False
-                
-                counter += 1
-                print(f"Error {status_code} from {self.domain}, switching domain.")
-                self.domain = self.domains[
-                    (self.domains.index(self.domain) + 1) % len(self.domains)
-                ]
+                print("No more tweets available.")
+                return False
 
 
 if __name__ == "__main__":

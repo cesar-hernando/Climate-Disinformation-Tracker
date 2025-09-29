@@ -236,7 +236,7 @@ if __name__ == "__main__":
     batch_size = 4 
     N = 3 # Top N usernames with more tweets about a topic
 
-    mode = 1 # 0 (find source) or 1 (retrieve all)
+    mode = 0 # 0 (find source) or 1 (retrieve all)
 
     start_time = time.time()
     source_finder = SourceFinder(top_n=top_n, n=n, excludes=excludes, batch_size=batch_size)
