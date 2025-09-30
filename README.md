@@ -1,4 +1,4 @@
-# Climate disinformation detector
+# Climate disinformation tracker
 
 ## Project Overview
 This project detects the origins and spread of climate-related disinformation on Twitter/X by:
