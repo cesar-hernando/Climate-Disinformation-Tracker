@@ -17,6 +17,11 @@ class ScraperNitter:
         self.domains = self._get_domains()
         self.domain = self.domains[2] if self.domains else "https://nitter.net"
 
+        # Start Playwright once and reuse the browser instance
+        self.playwright = sync_playwright().start()
+        self.browser = self.playwright.firefox.launch(headless=True)
+        self.context = self.browser.new_context()
+
     def __get_search_url(
         self, query, since="", until="", near="", filters={}, excludes={}):
         """Constructs a Nitter search URL based on the given parameters."""
@@ -67,20 +72,24 @@ class ScraperNitter:
     def __fetch_tweets(self, url):
         """Fetch page HTML using Playwright."""
 
-        with sync_playwright() as p:
-            browser = p.firefox.launch(headless=True)
-            page = browser.new_page()
-            full_url = self.domain + url
-            try:
-                page.goto(full_url, timeout=20000, wait_until="networkidle")
-                html = page.content()
-                status_code = 200
-            except Exception as e:
-                print(f"Playwright error on {full_url}: {e}")
-                html, status_code = "", 500
-            browser.close()
+        page = self.context.new_page()
+        full_url = self.domain + url
+        try:
+            page.goto(full_url, timeout=20000, wait_until="networkidle")
+            html = page.content()
+            status_code = 200
+        except Exception as e:
+            print(f"Playwright error on {full_url}: {e}")
+            html, status_code = "", 500
+        finally:
+            page.close()
 
         return html, status_code
+    
+    def close(self):
+        """Closes the Playwright browser and context."""
+        self.browser.close()
+        self.playwright.stop()
 
     def __parse_tweets(self, html_content):
         """Parses the HTML content to extract tweet information."""
@@ -199,4 +208,5 @@ if __name__ == "__main__":
     filename = f'test_Earth_warmed_cooled_nokeywords_search_{initial_date}_to_{final_date}.csv'
     scraper = ScraperNitter()
     scraper.get_tweets(claim, excludes={"nativeretweets", "replies"}, filename=filename, since=initial_date, until=final_date)
+    scraper.close()
     print(f"Scraping completed. Tweets saved to {filename}.")

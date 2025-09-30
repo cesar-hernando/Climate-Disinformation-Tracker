@@ -73,6 +73,7 @@ class SourceFinder:
                            until=final_date, 
                            excludes={"nativeretweets", "replies"}, 
                            filename=filename)
+        scraper.close()
         if tweets_list:
             print(f"\nScraping completed satisfactorily. Tweets saved to {filename}.\n")
         else:
@@ -118,6 +119,9 @@ class SourceFinder:
         prov_initial_year = initial_year
         prov_final_year = initial_year + step
 
+        scraper = ScraperNitter()
+        alignment_model = AlignmentModel()
+
         while prov_final_year <= (final_year + 1):
             # Construct dates from the corresponding years and the original initial month and day
             prov_initial_date = str(prov_initial_year) + initial_date[4:]
@@ -126,13 +130,13 @@ class SourceFinder:
             print(f"\nRetrieving tweets from {prov_initial_date} to {prov_final_date}...")
             filename = "_".join(keywords) + f'_kpc_{self.top_n - self.n}_{prov_initial_date}_to_{prov_final_date}.csv' # kpc stands for keywords per clause
 
-            scraper = ScraperNitter()
             tweets_list = scraper.get_tweets(query=query, 
                            since=prov_initial_date, 
                            until=prov_final_date, 
                            excludes={"nativeretweets", "replies"},
                            save_csv=False, 
                            filename=filename)
+            
             if tweets_list:
                 print(f"Scraping completed satisfactorily.")
             else:
@@ -141,7 +145,6 @@ class SourceFinder:
                 prov_final_year += step
                 continue
 
-            alignment_model = AlignmentModel()
             aligned_tweets = alignment_model.batch_filter_tweets(claim, tweets_list, batch_size=self.batch_size)
 
             if aligned_tweets:
@@ -155,6 +158,7 @@ class SourceFinder:
                 prov_final_year += step
                 continue
 
+        scraper.close()
         print("\nNo aligned tweets were found between the dates provided\n")
         return None, None    
             
