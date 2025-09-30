@@ -2,6 +2,7 @@
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
 
+
 class AlignmentModel:
     def __init__(self, model_name="MoritzLaurer/mDeBERTa-v3-base-mnli-xnli"):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

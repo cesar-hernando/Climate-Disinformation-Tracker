@@ -20,11 +20,8 @@ from scrapper_nitter import ScraperNitter
 from query_generator import QueryGenerator
 from alignment import AlignmentModel
 import time
-import pandas as pd
-from datetime import datetime
 from datetime import date
 from collections import Counter
-import os
 
 
 class SourceFinder:
@@ -33,30 +30,8 @@ class SourceFinder:
         self.n = n # Number of keywords dropped per clause
         self.excludes = excludes
         self.batch_size = batch_size
-
-    @staticmethod
-    def _csv_to_dict(filename):
-        """
-        Converts a csv to a list of dictionaries, renaming some columns for compatibility between classes.
-        """
-
-        # Load csv, rename columns and keep only relevant one, and remove empty rows
-        df = pd.read_csv(filename)
-        df = df.rename(columns={"username": "user", "content": "text", "timestamp":"created_at_datetime"})
-        df = df.dropna(subset=["text", "created_at_datetime", "user"], how="all")
-
-        def convert_timestamp_to_iso8601(ts):
-            dt = datetime.strptime(ts.replace(" ·", ""), "%b %d, %Y %I:%M %p %Z")
-            return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
-            
-        # Add normalized datetime column
-        df["created_at_datetime"] = df["created_at_datetime"].apply(convert_timestamp_to_iso8601)
-
-        # Convert to list of dictionaries
-        tweets_list = df.to_dict(orient="records")
-
-        return tweets_list
     
+
     @staticmethod
     def print_tweet(tweet, separator=80):
         """
@@ -93,20 +68,16 @@ class SourceFinder:
         filename = "_".join(keywords) + f'_kpc_{self.top_n - self.n}_{initial_date}_to_{final_date}.csv' # kpc stands for keywords per clause
 
         scraper = ScraperNitter()
-        success = scraper.get_tweets(query=query, 
+        tweets_list = scraper.get_tweets(query=query, 
                            since=initial_date, 
                            until=final_date, 
                            excludes={"nativeretweets", "replies"}, 
                            filename=filename)
-        if success:
+        if tweets_list:
             print(f"\nScraping completed satisfactorily. Tweets saved to {filename}.\n")
-        elif not(success) and os.path.exists(filename):
-            print(f"\nError encountered while scraping but tweets saved to {filename}.\n")
         else:
             print(f"\nError encountered and no tweets were retrieved.\n")
             return None, None
-        
-        tweets_list = self._csv_to_dict(filename)
 
         alignment_model = AlignmentModel()
         aligned_tweets = alignment_model.batch_filter_tweets(claim, tweets_list, batch_size=self.batch_size, verbose=verbose)
@@ -152,37 +123,34 @@ class SourceFinder:
             prov_initial_date = str(prov_initial_year) + initial_date[4:]
             prov_final_date = str(prov_final_year) + initial_date[4:]
 
-            print(f"\nRetrieving tweets from {prov_initial_date} to {prov_final_date}...\n")
+            print(f"\nRetrieving tweets from {prov_initial_date} to {prov_final_date}...")
             filename = "_".join(keywords) + f'_kpc_{self.top_n - self.n}_{prov_initial_date}_to_{prov_final_date}.csv' # kpc stands for keywords per clause
 
             scraper = ScraperNitter()
-            success = scraper.get_tweets(query=query, 
+            tweets_list = scraper.get_tweets(query=query, 
                            since=prov_initial_date, 
                            until=prov_final_date, 
-                           excludes={"nativeretweets", "replies"}, 
+                           excludes={"nativeretweets", "replies"},
+                           save_csv=False, 
                            filename=filename)
-            if success:
-                print(f"\nScraping completed satisfactorily. Tweets saved to {filename}.\n")
-            elif not(success) and os.path.exists(filename):
-                print(f"\nError encountered while scraping but tweets saved to {filename}.\n")
+            if tweets_list:
+                print(f"Scraping completed satisfactorily.")
             else:
-                print(f"\nError encountered and no tweets were retrieved.\n")
+                print(f"Error encountered and no tweets were retrieved.")
                 prov_initial_year += step
                 prov_final_year += step
                 continue
-                
-            tweets_list = self._csv_to_dict(filename)
 
             alignment_model = AlignmentModel()
             aligned_tweets = alignment_model.batch_filter_tweets(claim, tweets_list, batch_size=self.batch_size)
 
             if aligned_tweets:
                 oldest_aligned_tweet = alignment_model.find_first(aligned_tweets)
-                print("\nOldest aligned tweet:\n")
+                print("\nOldest aligned tweet:")
                 self.print_tweet(oldest_aligned_tweet)
                 return oldest_aligned_tweet, aligned_tweets
             else:
-                print("\nNone of the tweets are aligned.\n")
+                print("None of the tweets are aligned.")
                 prov_initial_year += step
                 prov_final_year += step
                 continue
@@ -229,7 +197,7 @@ class SourceFinder:
 
 if __name__ == "__main__":
     # Define the parameters of the search
-    claim = "Electric vehicles are actually worse for environment than gas cars"
+    claim = "The earth was hotter in the past, the medieval warm piored. Why is Greenland called Greenland?.the last ice age Co2 was high."
     top_n = 5 # Number of keywords extracted
     n = 1 # No advanced search if n=0 (# of keywords - n = number of words in each clause)
     excludes={"nativeretweets", "replies"}

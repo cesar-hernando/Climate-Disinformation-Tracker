@@ -6,6 +6,7 @@ and build a query suitable for advance search.
 from keybert import KeyBERT
 from itertools import combinations
 
+
 class QueryGenerator:
     def __init__(self, claim):
             self.claim = claim
@@ -15,7 +16,7 @@ class QueryGenerator:
             kw_model = KeyBERT(model="AIDA-UPM/mstsb-paraphrase-multilingual-mpnet-base-v2")
             keywords = kw_model.extract_keywords(self.claim, top_n=top_n)
             keywords = [k[0] for k in keywords]
-            print(f"Extracted keywords: {keywords}\n")
+            print(f"\nExtracted keywords: {keywords}")
             return keywords
 
 
