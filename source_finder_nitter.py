@@ -25,9 +25,9 @@ from collections import Counter
 
 
 class SourceFinder:
-    def __init__(self, top_n=5, n=2, excludes={"nativeretweets", "replies"}, batch_size=4):
-        self.top_n = top_n # Number of keywords extracted by KeyBert
-        self.n = n # Number of keywords dropped per clause
+    def __init__(self, max_keywords=5, n_keywords_dropped=2, excludes={"nativeretweets", "replies"}, batch_size=4):
+        self.max_keywords = max_keywords # Maximum number of keywords extracted by KeyBert
+        self.n_keywords_dropped = n_keywords_dropped # Number of keywords dropped per clause
         self.excludes = excludes
         self.batch_size = batch_size
     
@@ -57,15 +57,15 @@ class SourceFinder:
         tweets that align with the original claim, and obtains the oldest.
         """
         query_generator = QueryGenerator(claim)
-        keywords = query_generator.extract_keywords(top_n=self.top_n)
-        query = query_generator.build_query(n=self.n, keywords=keywords)
+        keywords = query_generator.extract_keywords(max_keywords=self.max_keywords)
+        query = query_generator.build_query(n_keywords_dropped=self.n_keywords_dropped, keywords=keywords)
         if initial_date == "":
             initial_date = "2006-03-21" # Beginning of Twitter
 
         if final_date == "":
             final_date = date.today().strftime("%Y-%m-%d")
 
-        filename = "_".join(keywords) + f'_kpc_{self.top_n - self.n}_{initial_date}_to_{final_date}.csv' # kpc stands for keywords per clause
+        filename = "_".join(keywords) + f'_kpc_{self.max_keywords - self.n_keywords_dropped}_{initial_date}_to_{final_date}.csv' # kpc stands for keywords per clause
 
         scraper = ScraperNitter()
         tweets_list = scraper.get_tweets(query=query, 
@@ -103,8 +103,8 @@ class SourceFinder:
         tweet is found.
         """
         query_generator = QueryGenerator(claim)
-        keywords = query_generator.extract_keywords(top_n=self.top_n)
-        query = query_generator.build_query(n=self.n, keywords=keywords)
+        keywords = query_generator.extract_keywords(max_keywords=self.max_keywords)
+        query = query_generator.build_query(n_keywords_dropped=self.n_keywords_dropped, keywords=keywords)
 
         if initial_date == "":
             initial_date = "2006-03-21" # Beginning of Twitter
@@ -128,7 +128,7 @@ class SourceFinder:
             prov_final_date = str(prov_final_year) + initial_date[4:]
 
             print(f"\nRetrieving tweets from {prov_initial_date} to {prov_final_date}...")
-            filename = "_".join(keywords) + f'_kpc_{self.top_n - self.n}_{prov_initial_date}_to_{prov_final_date}.csv' # kpc stands for keywords per clause
+            filename = "_".join(keywords) + f'_kpc_{self.max_keywords - self.n_keywords_dropped}_{prov_initial_date}_to_{prov_final_date}.csv' # kpc stands for keywords per clause
 
             tweets_list = scraper.get_tweets(query=query, 
                            since=prov_initial_date, 
@@ -164,9 +164,9 @@ class SourceFinder:
             
 
     @staticmethod
-    def get_top_tweeters(aligned_tweets, N=5):
+    def get_top_tweeters(aligned_tweets, top_n_tweeters=5):
         """
-        Returns the top N usernames with most tweets, number of tweets, and their tweets.
+        Returns the top usernames with most tweets, the number of tweets, and their tweets.
         """
         if not aligned_tweets:
             return []
@@ -176,7 +176,7 @@ class SourceFinder:
         user_counts = Counter(users)
 
         # Get top N users
-        top_users = user_counts.most_common(N)
+        top_users = user_counts.most_common(top_n_tweeters)
 
         # Collect their tweets
         top_tweeters = []
@@ -202,16 +202,19 @@ class SourceFinder:
 if __name__ == "__main__":
     # Define the parameters of the search
     claim = "The earth was hotter in the past, the medieval warm piored. Why is Greenland called Greenland?.the last ice age Co2 was high."
-    top_n = 5 # Number of keywords extracted
-    n = 1 # No advanced search if n=0 (# of keywords - n = number of words in each clause)
+    max_keywords = 5 # Maximum number of keywords extracted
+    n_keywords_dropped = 1 # No advanced search if n=0 (# of keywords - n = number of words in each clause)
     excludes={"nativeretweets", "replies"}
     batch_size = 4 
-    N = 3 # Top N usernames with more tweets about a topic
+    top_n_tweeters = 3 # Top usernames with more tweets about a topic
 
     mode = 0 # 0 (find source) or 1 (retrieve all)
 
     start_time = time.time()
-    source_finder = SourceFinder(top_n=top_n, n=n, excludes=excludes, batch_size=batch_size)
+    source_finder = SourceFinder(max_keywords=max_keywords, 
+                                 n_keywords_dropped=n_keywords_dropped, 
+                                 excludes=excludes, 
+                                 batch_size=batch_size)
 
     if mode == 0:
         initial_date = "2007-01-01"
@@ -223,9 +226,9 @@ if __name__ == "__main__":
         initial_date = ""
         final_date = ""
         oldest_aligned_tweet, aligned_tweets = source_finder.find_all(claim, initial_date, final_date)
-        top_tweeters = source_finder.get_top_tweeters(aligned_tweets=aligned_tweets, N=N)
+        top_tweeters = source_finder.get_top_tweeters(aligned_tweets=aligned_tweets, top_n_tweeters=top_n_tweeters)
 
     end_time = time.time()
     run_time = end_time - start_time
-    print(f"\nExecution time of the Source Finder: {run_time:1f} s\n")
+    print(f"\nExecution time of the Source Finder: {run_time:.2f} s\n")
 
