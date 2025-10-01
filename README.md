@@ -1,4 +1,4 @@
-# Climate disinformation detector
+# Climate disinformation tracker
 
 ## Project Overview
 This project detects the origins and spread of climate-related disinformation on Twitter/X by:
@@ -29,7 +29,6 @@ This project detects the origins and spread of climate-related disinformation on
   python main.py
   ```
 - **Environment:**
-  - Requires a `.env` file for credentials (not included in repo).
   - Uses Playwright for browser automation (Firefox by default).
 
 ## Project-Specific Patterns
