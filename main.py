@@ -18,9 +18,28 @@ from source_finder_nitter import SourceFinder
 #warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 
+##################################################
+################ Nitter's domains ################
+##################################################
+'''
+[0] "https://xcancel.com",
+[1] "https://nitter.poast.org",
+[2] "https://nitter.privacyredirect.com",
+[3] "https://lightbrd.com",
+[4] "https://nitter.space",
+[5] "https://nitter.tiekoetter.com",
+[6] "https://nuku.trabun.org",
+[7] "https://nitter.kuuro.net",
+[8] "https://worldcorrespondents.com"
+'''
+
+##################################################
+############## Main program ######################
+##################################################
 
 # Define the parameters of the search
-claim = "ocean currents are reversing"
+domain_index = 5 # Index of the Nitter domain to use, change if one domain is down
+claim = "Climate change is just a natural cycle - the Earth has always warmed and cooled"
 max_keywords = 5 # Maximum number of keywords extracted
 n_keywords_dropped = 1 # No advanced search if n_keywords_dropped = 0
 excludes={"nativeretweets", "replies"}
@@ -29,7 +48,10 @@ top_n_tweeters = 3 # Top usernames with more tweets about a topic
 mode = 0 # 0 (find source) or 1 (retrieve all)
 
 start_time = time.time()
-source_finder = SourceFinder(max_keywords=max_keywords, n_keywords_dropped=n_keywords_dropped, excludes=excludes)
+source_finder = SourceFinder(domain_index=domain_index, 
+                             max_keywords=max_keywords, 
+                             n_keywords_dropped=n_keywords_dropped, 
+                             excludes=excludes)
 
 if mode == 0:
     initial_date = "2007-01-01"

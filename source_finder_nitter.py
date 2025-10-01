@@ -25,7 +25,8 @@ from collections import Counter
 
 
 class SourceFinder:
-    def __init__(self, max_keywords=5, n_keywords_dropped=2, excludes={"nativeretweets", "replies"}, batch_size=4):
+    def __init__(self, domain_index=5, max_keywords=5, n_keywords_dropped=2, excludes={"nativeretweets", "replies"}, batch_size=4):
+        self.domain_index = domain_index # Index of the Nitter domain to use, change if one domain is down
         self.max_keywords = max_keywords # Maximum number of keywords extracted by KeyBert
         self.n_keywords_dropped = n_keywords_dropped # Number of keywords dropped per clause
         self.excludes = excludes
@@ -67,7 +68,7 @@ class SourceFinder:
 
         filename = "_".join(keywords) + f'_kpc_{self.max_keywords - self.n_keywords_dropped}_{initial_date}_to_{final_date}.csv' # kpc stands for keywords per clause
 
-        scraper = ScraperNitter()
+        scraper = ScraperNitter(domain_index=self.domain_index)
         tweets_list = scraper.get_tweets(query=query, 
                            since=initial_date, 
                            until=final_date, 
@@ -77,7 +78,7 @@ class SourceFinder:
         if tweets_list:
             print(f"\nScraping completed satisfactorily. Tweets saved to {filename}.\n")
         else:
-            print(f"\nError encountered and no tweets were retrieved.\n")
+            print(f"\nNo tweets were found.\n")
             return None, None
 
         alignment_model = AlignmentModel()
@@ -119,7 +120,7 @@ class SourceFinder:
         prov_initial_year = initial_year
         prov_final_year = initial_year + step
 
-        scraper = ScraperNitter()
+        scraper = ScraperNitter(domain_index=self.domain_index)
         alignment_model = AlignmentModel()
 
         while prov_final_year <= (final_year + 1):
@@ -138,9 +139,9 @@ class SourceFinder:
                            filename=filename)
             
             if tweets_list:
-                print(f"Scraping completed satisfactorily.")
+                print(f"{len(tweets_list)} tweets were found.")
             else:
-                print(f"Error encountered and no tweets were retrieved.")
+                print(f"No tweets were found.")
                 prov_initial_year += step
                 prov_final_year += step
                 continue
@@ -153,7 +154,7 @@ class SourceFinder:
                 self.print_tweet(oldest_aligned_tweet)
                 return oldest_aligned_tweet, aligned_tweets
             else:
-                print("None of the tweets are aligned.")
+                print("None of the tweets found are aligned with the original claim.")
                 prov_initial_year += step
                 prov_final_year += step
                 continue
@@ -203,7 +204,7 @@ if __name__ == "__main__":
     # Define the parameters of the search
     claim = "The earth was hotter in the past, the medieval warm piored. Why is Greenland called Greenland?.the last ice age Co2 was high."
     max_keywords = 5 # Maximum number of keywords extracted
-    n_keywords_dropped = 1 # No advanced search if n=0 (# of keywords - n = number of words in each clause)
+    n_keywords_dropped = 0 # No advanced search if n=0 (# of keywords - n = number of words in each clause)
     excludes={"nativeretweets", "replies"}
     batch_size = 4 
     top_n_tweeters = 3 # Top usernames with more tweets about a topic

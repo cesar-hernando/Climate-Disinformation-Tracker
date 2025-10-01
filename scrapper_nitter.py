@@ -13,9 +13,9 @@ from playwright.sync_api import sync_playwright
 
 
 class ScraperNitter:
-    def __init__(self):
+    def __init__(self, domain_index=5):
         self.domains = self._get_domains()
-        self.domain = self.domains[2] if self.domains else "https://nitter.net"
+        self.domain = self.domains[domain_index] if self.domains else "https://nitter.net"
 
         # Start Playwright once and reuse the browser instance
         self.playwright = sync_playwright().start()
@@ -183,10 +183,8 @@ class ScraperNitter:
                 tweets, new_cursor = self.__parse_tweets(html_content)
                 all_tweets.extend(tweets if tweets else [])
                 if new_cursor == "finished": # No more tweets to fetch
-                    print("No more tweets available.")
                     return all_tweets
                 if not tweets:
-                    print(f"No more tweets available.")
                     return all_tweets
                     
                 if save_csv:    
@@ -196,7 +194,6 @@ class ScraperNitter:
                     cursor = new_cursor
 
             else:
-                print("No more tweets available.")
                 return all_tweets
 
 
