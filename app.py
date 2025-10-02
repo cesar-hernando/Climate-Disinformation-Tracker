@@ -8,11 +8,12 @@ from fastapi.staticfiles import StaticFiles
 from source_finder_nitter import SourceFinder
 
 app = FastAPI(title="Climate Disinformation Detector API")
+# TODO: check if static mounting is necessary
 # app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # or ["http://127.0.0.1:5500"] if serving via VSCode Live Server
+    allow_origins=["*"], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -28,19 +29,30 @@ class AnalyzeRequest(BaseModel):
     max_tweets: int = 200
     top_k: int = 3
 
-sf = SourceFinder()
+# Define source finder parameters 
+domain_index = 5 # Index of the Nitter domain to use, change if one domain is down
+claim = "Masks don't work against viruses - government lies to control us"
+max_keywords = 5 # Maximum number of keywords extracted
+n_keywords_dropped = 1 # No advanced search if n_keywords_dropped = 0
+excludes={"nativeretweets", "replies"}
+top_n_tweeters = 3 # Top usernames with more tweets about a topic
+
+source_finder = SourceFinder(domain_index=domain_index, 
+                             max_keywords=max_keywords, 
+                             n_keywords_dropped=n_keywords_dropped, 
+                             excludes=excludes)
 
 @app.post("/api/analyze")
 async def analyze(req: AnalyzeRequest):
     try:
         if req.mode == "find_source":
-            result = sf.find_source(
+            result = source_finder.find_source(
                 claim=req.text,
                 initial_date=req.initial_date,
                 final_date=req.final_date,
             )
         elif req.mode == "find_all":
-            result = sf.find_all(
+            result = source_finder.find_all(
                 claim=req.text,
                 initial_date=req.initial_date,
                 final_date=req.final_date,
