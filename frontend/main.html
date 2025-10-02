@@ -2,112 +2,30 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Climate Disinformation Detector</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f4f6f9;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-    }
-
-    .container {
-      background: #fff;
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      width: 100%;
-      max-width: 480px;
-      text-align: center;
-    }
-
-    h2 {
-      margin-bottom: 20px;
-      color: #2c3e50;
-    }
-
-    input[type="text"] {
-      width: 100%;
-      padding: 12px 14px;
-      margin-bottom: 15px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 15px;
-      transition: border-color 0.2s;
-    }
-
-    input[type="text"]:focus {
-      outline: none;
-      border-color: #3498db;
-      box-shadow: 0 0 5px rgba(52,152,219,0.3);
-    }
-
-    button {
-      background: #3498db;
-      color: #fff;
-      border: none;
-      padding: 12px 20px;
-      font-size: 15px;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    button:hover {
-      background: #2980b9;
-    }
-
-    #result {
-      margin-top: 20px;
-      padding: 15px;
-      border-radius: 8px;
-      background: #f9f9f9;
-      border: 1px solid #ddd;
-      text-align: left;
-      font-size: 14px;
-      color: #333;
-      min-height: 40px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    /* Spinner styles */
-    .spinner {
-      width: 16px;
-      height: 16px;
-      border: 2px solid #ccc;
-      border-top: 2px solid #3498db;
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css"> <!-- external CSS -->
 </head>
 <body>
   <div class="container">
     <h2>Climate Disinformation Detector</h2>
     <form id="detectForm">
       <input type="text" id="textInput" placeholder="Enter text to analyze..." required>
-      <button type="submit">Analyze</button>
+      <button type="submit" id="analyzeBtn">Analyze</button>
     </form>
     <div id="result"></div>
   </div>
 
   <script>
     const resultDiv = document.getElementById('result');
+    const analyzeBtn = document.getElementById('analyzeBtn');
 
     document.getElementById('detectForm').addEventListener('submit', async function(e) {
       e.preventDefault();
       const text = document.getElementById('textInput').value;
+
+      // disable button during request
+      analyzeBtn.disabled = true;
 
       // show spinner + text
       resultDiv.innerHTML = '<div class="spinner"></div> Analyzing...';
@@ -126,6 +44,8 @@
         }
       } catch (err) {
         resultDiv.textContent = 'Network error.';
+      } finally {
+        analyzeBtn.disabled = false; // re-enable button
       }
     });
   </script>
