@@ -31,7 +31,6 @@
     }
 
     input[type="text"] {
-      max-width: 450px;
       width: 100%;
       padding: 12px 14px;
       margin-bottom: 15px;
@@ -72,6 +71,24 @@
       font-size: 14px;
       color: #333;
       min-height: 40px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Spinner styles */
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid #ccc;
+      border-top: 2px solid #3498db;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
   </style>
 </head>
@@ -86,12 +103,15 @@
   </div>
 
   <script>
+    const resultDiv = document.getElementById('result');
+
     document.getElementById('detectForm').addEventListener('submit', async function(e) {
       e.preventDefault();
       const text = document.getElementById('textInput').value;
-      document.getElementById('result').textContent = 'Analyzing...';
 
-      // Replace '/api/analyze' with backend endpoint
+      // show spinner + text
+      resultDiv.innerHTML = '<div class="spinner"></div> Analyzing...';
+
       try {
         const response = await fetch('/api/analyze', {
           method: 'POST',
@@ -100,12 +120,12 @@
         });
         if (response.ok) {
           const data = await response.json();
-          document.getElementById('result').textContent = data.result || 'No result returned.';
+          resultDiv.textContent = data.result || 'No result returned.';
         } else {
-          document.getElementById('result').textContent = 'Error analyzing text.';
+          resultDiv.textContent = 'Error analyzing text.';
         }
       } catch (err) {
-        document.getElementById('result').textContent = 'Network error.';
+        resultDiv.textContent = 'Network error.';
       }
     });
   </script>
