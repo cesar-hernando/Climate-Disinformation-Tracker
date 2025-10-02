@@ -31,21 +31,6 @@ This project detects the origins and spread of climate-related disinformation on
 - **Environment:**
   - Uses Playwright for browser automation (Firefox by default).
 
-## Project-Specific Patterns
-- **Keyword Extraction:** Uses KeyBERT with a multilingual model (`AIDA-UPM/mstsb-paraphrase-multilingual-mpnet-base-v2`).
-- **Tweet Alignment:** Uses `MoritzLaurer/mDeBERTa-v3-base-mnli-xnli` for claim/tweet classification.
-- **Nitter Domains:** Scraper fetches a list of Nitter instances and selects one at random for scraping.
-- **CSV Normalization:** All tweet data is normalized to a standard dict format for downstream processing.
-- **Batch Processing:** Alignment and filtering are performed in batches for efficiency.
-
-## Integration Points
-- **External APIs:**
-  - Nitter (via Playwright scraping)
-  - HuggingFace Transformers (for alignment and KeyBERT)
-- **Data Flow:**
-  1. Claim → Query → Scrape Tweets → Align/Filter → Find Oldest Source
-  2. Results are saved as CSVs in `results/`
-
 ## Examples
 - To add a new claim, modify the `claim` variable in `main.py`.
 - To change the alignment model, update the `model_name` in `alignment.py`.
