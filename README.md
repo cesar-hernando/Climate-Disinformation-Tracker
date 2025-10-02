@@ -28,6 +28,10 @@ This project detects the origins and spread of climate-related disinformation on
   ```bash
   python main.py
   ```
+- **Run using User Interface:**
+  ```
+  uvicorn app:app --reload
+  ```
 - **Environment:**
   - Uses Playwright for browser automation (Firefox by default).
 

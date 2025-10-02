@@ -1,11 +1,22 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
+from fastapi.staticfiles import StaticFiles
 
-# Import your backend pipeline
-from source_finder_nitter import find_source, find_all
+# Import backend pipeline
+from source_finder_nitter import SourceFinder
 
 app = FastAPI(title="Climate Disinformation Detector API")
+# app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # or ["http://127.0.0.1:5500"] if serving via VSCode Live Server
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Request schema
 class AnalyzeRequest(BaseModel):
@@ -17,17 +28,19 @@ class AnalyzeRequest(BaseModel):
     max_tweets: int = 200
     top_k: int = 3
 
+sf = SourceFinder()
+
 @app.post("/api/analyze")
 async def analyze(req: AnalyzeRequest):
     try:
         if req.mode == "find_source":
-            result = find_source(
+            result = sf.find_source(
                 claim=req.text,
                 initial_date=req.initial_date,
                 final_date=req.final_date,
             )
         elif req.mode == "find_all":
-            result = find_all(
+            result = sf.find_all(
                 claim=req.text,
                 initial_date=req.initial_date,
                 final_date=req.final_date,
