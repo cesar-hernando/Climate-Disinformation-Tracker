@@ -21,6 +21,7 @@ from source_finder_nitter import SourceFinder
 ##################################################
 ################ Nitter's domains ################
 ##################################################
+
 '''
 [0] "https://xcancel.com",
 [1] "https://nitter.poast.org",
@@ -39,7 +40,7 @@ from source_finder_nitter import SourceFinder
 
 # Define the parameters of the search
 domain_index = 5 # Index of the Nitter domain to use, change if one domain is down
-claim = "Climate change is just a natural cycle - the Earth has always warmed and cooled"
+claim = "Masks don't work against viruses - government lies to control us"
 max_keywords = 5 # Maximum number of keywords extracted
 n_keywords_dropped = 1 # No advanced search if n_keywords_dropped = 0
 excludes={"nativeretweets", "replies"}
