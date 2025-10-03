@@ -22,6 +22,8 @@ from alignment import AlignmentModel
 import time
 from datetime import date
 from collections import Counter
+import pandas as pd
+import os
 
 
 class SourceFinder:
@@ -50,12 +52,33 @@ class SourceFinder:
             else:
                 print(f"{field_name}: {value}")
         print("-" * separator)
-    
 
-    def find_all(self, claim, initial_date="", final_date="", verbose=False):
+    def predict_alignment(self, claim, tweets_list, filename):
         """
-        Transforms a claim into a query for advanced search, retrieves tweets using Nitter, selects the
-        tweets that align with the original claim, and obtains the oldest.
+        Saves the tweets along with their alignment to a CSV file.
+        """
+        alignment_model = AlignmentModel()
+        print(f"Predicting alignment for {len(tweets_list)} tweets...")
+        alignment_list = alignment_model.batch_predict(claim, tweets_list, batch_size=self.batch_size)
+
+        if not tweets_list or not alignment_list or len(tweets_list) != len(alignment_list):
+            print("No tweets or alignment data to save, or lengths do not match.")
+            return
+
+        # Add alignment to each tweet
+        for tweet, alignment in zip(tweets_list, alignment_list):
+            tweet['alignment'] = alignment
+
+        df = pd.DataFrame(tweets_list)
+        df.to_csv(filename, index=False, encoding='utf-8')
+
+        print(f"Tweets with alignment saved to {filename}.")
+        return df
+    
+    def find_all(self, claim, initial_date="", final_date="", verbose=False, data_folder="data/"):
+        """
+        Transforms a claim into a query for advanced search, retrieves tweets using Nitter, predicts alignment of tweets with the claim,
+        and saves the tweets along with their alignment to a CSV file.
         """
         query_generator = QueryGenerator(claim)
         keywords = query_generator.extract_keywords(max_keywords=self.max_keywords)
@@ -66,35 +89,31 @@ class SourceFinder:
         if final_date == "":
             final_date = date.today().strftime("%Y-%m-%d")
 
-        filename = "_".join(keywords) + f'_kpc_{self.max_keywords - self.n_keywords_dropped}_{initial_date}_to_{final_date}.csv' # kpc stands for keywords per clause
+        filename = data_folder + "_".join(keywords) + f'_kpc_{self.max_keywords - self.n_keywords_dropped}_{initial_date}_to_{final_date}.csv' # kpc stands for keywords per clause
+
+        # If file already exists, return filename
+        if os.path.exists(filename):
+            print(f"\nFile {filename} already exists.\n")
+            return filename, None
 
         scraper = ScraperNitter(domain_index=self.domain_index)
         tweets_list = scraper.get_tweets(query=query, 
                            since=initial_date, 
                            until=final_date, 
                            excludes={"nativeretweets", "replies"}, 
+                           save_csv=False,
                            filename=filename)
         scraper.close()
         if tweets_list:
-            print(f"\nScraping completed satisfactorily. Tweets saved to {filename}.\n")
+            print(f"\nScraping completed satisfactorily.\n")
         else:
             print(f"\nNo tweets were found.\n")
             return None, None
+        
+        tweets_list = self.predict_alignment(claim, tweets_list, filename)
+        df = pd.DataFrame(tweets_list)
 
-        alignment_model = AlignmentModel()
-        aligned_tweets = alignment_model.batch_filter_tweets(claim, tweets_list, batch_size=self.batch_size, verbose=verbose)
-        if aligned_tweets:
-            if verbose:
-                print(f"\nAligned tweets:\n{aligned_tweets}")
-
-            oldest_aligned_tweet = alignment_model.find_first(aligned_tweets)
-            print(f"\nOldest aligned tweet:\n")
-            self.print_tweet(oldest_aligned_tweet)
-
-            return oldest_aligned_tweet, aligned_tweets
-        else:
-            print("No aligned tweets found.")
-            return None, None
+        return filename, df
         
 
     def find_source(self, claim, initial_date="", final_date="", step=1):
