@@ -39,7 +39,23 @@
 
         if (response.ok) {
           const data = await response.json();
-          resultDiv.textContent = data.result || 'No result returned.';
+
+          console.log(data)
+
+          if (data) {
+            // build HTML card for result
+            resultDiv.innerHTML = `
+              <div class="result-card">
+                <p><strong>User:</strong> ${data.user}</p>
+                <p><strong>Text:</strong> ${data.text}</p>
+                <p><strong>Date:</strong> ${new Date(data.created_at_datetime).toLocaleString()}</p>
+                <p><strong>Engagement:</strong> 👍 ${data.likes} | 🔁 ${data.retweets} | 💬 ${data.comments} | 🔗 ${data.quotes}</p>
+                <p><a href="https://twitter.com${data.link}" target="_blank">View on Twitter</a></p>
+              </div>
+            `;
+          } else {
+            resultDiv.textContent = 'No result returned.';
+          }
         } else {
           resultDiv.textContent = 'Error analyzing text.';
         }
