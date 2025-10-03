@@ -8,8 +8,6 @@ from fastapi.staticfiles import StaticFiles
 from source_finder_nitter import SourceFinder
 
 app = FastAPI(title="Climate Disinformation Detector API")
-# TODO: check if static mounting is necessary
-# app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
 
 app.add_middleware(
     CORSMiddleware,
@@ -63,3 +61,6 @@ def analyze(req: AnalyzeRequest):
         return result[0] # TODO: check if we want to return more
     except Exception as e:
         return {"error": str(e)}
+
+# Mount index.html
+app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")

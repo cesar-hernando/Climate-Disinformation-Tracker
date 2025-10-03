@@ -32,6 +32,7 @@ This project detects the origins and spread of climate-related disinformation on
   ```
   uvicorn app:app --reload
   ```
+  Then the user interface should be accessible at `127.0.0.1:8000`
 - **Environment:**
   - Uses Playwright for browser automation (Firefox by default).
 
