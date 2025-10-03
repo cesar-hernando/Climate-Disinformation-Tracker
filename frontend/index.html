@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Climate Disinformation Detector</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h2>Climate Disinformation Detector</h2>
+    <form id="detectForm">
+      <input type="text" id="textInput" placeholder="Enter text to analyze..." required>
+      <button type="submit" id="analyzeBtn">Analyze</button>
+    </form>
+    <div id="result"></div>
+  </div>
+
+  <script>
+    const resultDiv = document.getElementById('result');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+
+    document.getElementById('detectForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const text = document.getElementById('textInput').value;
+
+      // disable button during request
+      analyzeBtn.disabled = true;
+
+      // show spinner + text
+      resultDiv.innerHTML = '<div class="spinner"></div> Analyzing...';
+
+      try {
+        const response = await fetch('http://127.0.0.1:8000/api/analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          resultDiv.textContent = data.result || 'No result returned.';
+        } else {
+          resultDiv.textContent = 'Error analyzing text.';
+        }
+      } catch (err) {
+        resultDiv.textContent = 'Network error.';
+      } finally {
+        analyzeBtn.disabled = false; // re-enable button
+      }
+    });
+  </script>
+</body>
+</html>
