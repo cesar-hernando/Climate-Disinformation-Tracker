@@ -33,6 +33,7 @@ def tweets_over_time(df):
 
     fig.update_xaxes(title="Time", rangeslider=dict(visible=True), type="date")
     fig.update_yaxes(title="Number of Posts")
+    fig.update_layout(legend=dict(itemclick=False, itemdoubleclick=False, title="Alignment"))
     return fig
 
 def top_users(df, top_n=10):
@@ -62,20 +63,28 @@ def tweet_bubble_chart(df):
     # Define colors for each alignment
     color_map = {"Entailment": "green", "Neutral": "gray", "Contradiction": "red"}
 
+    df["likes_for_size"] = df["likes"] + 4  # Shift likes to avoid zero size in chart
+
     # Build the bubble chart
     fig = px.scatter(
         df,
         x="created_at_datetime",
         y="retweets",             # y-axis = number of retweets
-        size="likes",          # bubble size = number of comments
+        size="likes_for_size",          # bubble size = number of comments
         color="alignment",        # bubble color = alignment
-        hover_data=["user", "retweets", "comments", "likes"],
+        hover_data={
+            "user": True,
+            "retweets": True,
+            "comments": True,
+            "likes": True,
+            "likes_for_size": False
+        },
         color_discrete_map=color_map,
         title="Posts Bubble Chart",
     )
     
     fig.update_xaxes(title="Time", type="date")
-    fig.update_yaxes(title="Number of Retweets", type="log")
-    fig.update_traces(marker=dict(sizemode="area", sizeref=2.*max(df["likes"])/(40.**2), line_width=1))
-    
+    fig.update_yaxes(title="Number of Retweets", type="linear")
+    fig.update_traces(marker=dict(sizemode="area", sizeref=2.*max(df["likes_for_size"])/(52.**2), line_width=1))
+    fig.update_layout(legend=dict(itemclick=False, itemdoubleclick=False, title="Alignment"))
     return fig
