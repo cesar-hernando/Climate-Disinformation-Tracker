@@ -28,6 +28,11 @@ This project detects the origins and spread of climate-related disinformation on
   ```bash
   python main.py
   ```
+- **Run using User Interface:**
+  ```
+  uvicorn app:app --reload
+  ```
+  Then the user interface should be accessible at `http://127.0.0.1:8000`
 - **Environment:**
   - Uses Playwright for browser automation (Firefox by default).
 
