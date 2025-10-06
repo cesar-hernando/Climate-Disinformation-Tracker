@@ -31,15 +31,18 @@ form {
   gap: 12px;
 }
 
-.date-inputs {
+.date-inputs, .mode-selection {
   display: flex;
   justify-content: center;
   gap: 1rem;
 }
 
-.date-inputs > div {
+.date-inputs > div, .mode-selection > div {
   display: flex;
   gap: 0.5rem;
+}
+
+.date-inputs > div {
   flex-direction: column;
 }
 

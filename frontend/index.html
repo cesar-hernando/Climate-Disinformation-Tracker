@@ -24,6 +24,18 @@
         </div>
       </div>
 
+      <div  class="mode-selection">
+        <div>
+          <input type="radio" id="find_source" name="mode" value="find_source" checked>
+          <label for="find_source">Find Source</label>
+        </div>
+        
+        <div>
+          <input type="radio" id="find_all" name="mode" value="find_all">
+          <label for="find_all">Find All</label>
+        </div>
+      </div>
+      
       <button type="submit" id="analyzeBtn">Analyze</button>
     </form>
     <div id="result"></div>
@@ -39,15 +51,13 @@
       const text = document.getElementById('textInput').value;
       const initialDate = document.getElementById('initialDate').value || "";
       const finalDate = document.getElementById('finalDate').value || "";
+      const mode = document.querySelector('input[name="mode"]:checked').value;
 
       // disable button during request
       analyzeBtn.disabled = true;
 
       // show spinner + text
       resultDiv.innerHTML = '<div class="spinner"></div> Analyzing...';
-
-      console.log(initialDate);
-      console.log(finalDate)
 
       try {
         const response = await fetch('http://127.0.0.1:8000/api/analyze', {
@@ -56,7 +66,8 @@
             body: JSON.stringify({ 
               text,
               initial_date: initialDate, 
-              final_date: finalDate
+              final_date: finalDate,
+              mode: mode,
             })
         });
 
@@ -64,6 +75,7 @@
           const data = await response.json();
 
           if (data) {
+            console.log(data);
             // build HTML card for result
             resultDiv.innerHTML = `
               <div class="result-card">
