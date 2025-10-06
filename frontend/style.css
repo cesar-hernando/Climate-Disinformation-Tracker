@@ -152,6 +152,29 @@ select:focus {
   outline: none;
 }
 
+/* Checkboxes */
+.checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-top: 6px;
+}
+
+.checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.9em;
+  background: #f8f9fa;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+
+.checkbox-group input[type="checkbox"] {
+  transform: scale(1.1);
+}
+
 
 /* Collapsible content */
 .advanced-content {

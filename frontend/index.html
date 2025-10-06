@@ -58,8 +58,22 @@
           <label for="n_keywords_dropped">Number of Keywords Dropped</label>
           <input type="text" id="n_keywords_dropped" name="n_keywords_dropped" value="1">
           
-          <label for="excludes">Excludes (comma-separated)</label>
-          <input type="text" id="excludes" name="excludes" value="nativeretweets,replies">
+          <label>Excludes</label>
+          <div id="excludes" class="checkbox-group">
+            <label><input type="checkbox" value="nativeretweets" checked> nativeretweets</label>
+            <label><input type="checkbox" value="media"> media</label>
+            <label><input type="checkbox" value="videos"> videos</label>
+            <label><input type="checkbox" value="news"> news</label>
+            <label><input type="checkbox" value="verified"> verified</label>
+            <label><input type="checkbox" value="native_video"> native_video</label>
+            <label><input type="checkbox" value="replies" checked> replies</label>
+            <label><input type="checkbox" value="links"> links</label>
+            <label><input type="checkbox" value="images"> images</label>
+            <label><input type="checkbox" value="safe"> safe</label>
+            <label><input type="checkbox" value="quote"> quote</label>
+            <label><input type="checkbox" value="pro_video"> pro_video</label>
+          </div>
+
         </div>
       </div>
       
@@ -90,7 +104,10 @@
       const domain_index = parseInt(document.getElementById('domain_index').value) || 5;
       const max_keywords = parseInt(document.getElementById('max_keywords').value) || 5;
       const n_keywords_dropped = parseInt(document.getElementById('n_keywords_dropped').value) || 1;
-      const excludes = document.getElementById('excludes').value.split(',').map(s => s.trim()) || ["nativeretweets", "replies"];
+      const excludes = Array.from(
+        document.querySelectorAll('#excludes input[type="checkbox"]:checked')
+      ).map(cb => cb.value);
+
 
       // disable button during request
       analyzeBtn.disabled = true;
