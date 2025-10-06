@@ -41,16 +41,16 @@ source_finder = SourceFinder(domain_index=domain_index,
                              excludes=excludes)
 
 @app.post("/api/analyze")
-def analyze(req: AnalyzeRequest):
+async def analyze(req: AnalyzeRequest):
     try:
         if req.mode == "find_source":
-            result = source_finder.find_source(
+            result = await source_finder.find_source(
                 claim=req.text,
                 initial_date=req.initial_date,
                 final_date=req.final_date,
             )
         elif req.mode == "find_all":
-            result = source_finder.find_all(
+            result = await source_finder.find_all(
                 claim=req.text,
                 initial_date=req.initial_date,
                 final_date=req.final_date,
