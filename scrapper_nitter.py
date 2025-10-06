@@ -3,24 +3,53 @@ Module for scraping data from Nitter using Playwright.
 Nitter is a free and open source alternative Twitter front-end focused on privacy.
 """
 
-# Libraries for ScraperNitter
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import quote_plus
 import csv
 from datetime import datetime
-from playwright.sync_api import sync_playwright
+import asyncio
+from playwright.async_api import async_playwright
 
 
 class ScraperNitter:
     def __init__(self, domain_index=5):
         self.domains = self._get_domains()
         self.domain = self.domains[domain_index] if self.domains else "https://nitter.net"
+        self.browser = None
+        self.context = None
+        self.playwright = None
 
-        # Start Playwright once and reuse the browser instance
-        self.playwright = sync_playwright().start()
-        self.browser = self.playwright.firefox.launch(headless=True)
-        self.context = self.browser.new_context()
+
+    async def __aenter__(self):
+        """Start Playwright and open browser context when entering async block."""
+        self.playwright = await async_playwright().start()
+        self.browser = await self.playwright.firefox.launch(headless=True)
+        self.context = await self.browser.new_context()
+        return self
+
+
+    async def __aexit__(self, exc_type, exc, tb):
+        """Close browser and stop Playwright on exit (even if error occurs)."""
+        if self.context:
+            await self.context.close()
+        if self.browser:
+            await self.browser.close()
+        if self.playwright:
+            await self.playwright.stop()
+
+
+    def _get_domains(self):
+        """Fetch the list of clear web Nitter instances."""
+
+        r = requests.get(
+            "https://raw.githubusercontent.com/libredirect/instances/main/data.json"
+        )
+        if r.ok:
+            return r.json()["nitter"]["clearnet"]
+        else:
+            return None
+
 
     def __get_search_url(
         self, query, since="", until="", near="", filters={}, excludes={}):
@@ -58,38 +87,24 @@ class ScraperNitter:
             query=query, since=since, until=until, near=near, selected=selected
         )
 
-    def _get_domains(self):
-        """Fetch the list of clear web Nitter instances."""
-
-        r = requests.get(
-            "https://raw.githubusercontent.com/libredirect/instances/main/data.json"
-        )
-        if r.ok:
-            return r.json()["nitter"]["clearnet"]
-        else:
-            return None
-
-    def __fetch_tweets(self, url):
+    
+    async def __fetch_tweets(self, url):
         """Fetch page HTML using Playwright."""
 
-        page = self.context.new_page()
+        page = await self.context.new_page()
         full_url = self.domain + url
         try:
-            page.goto(full_url, timeout=20000, wait_until="networkidle")
-            html = page.content()
+            await page.goto(full_url, timeout=60000, wait_until="networkidle")
+            html = await page.content()
             status_code = 200
         except Exception as e:
             print(f"Playwright error on {full_url}: {e}")
             html, status_code = "", 500
         finally:
-            page.close()
+            await page.close()
 
         return html, status_code
-    
-    def close(self):
-        """Closes the Playwright browser and context."""
-        self.browser.close()
-        self.playwright.stop()
+
 
     def __parse_tweets(self, html_content):
         """Parses the HTML content to extract tweet information."""
@@ -99,7 +114,6 @@ class ScraperNitter:
             return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
 
         soup = BeautifulSoup(html_content, "html.parser")
-        
         tweets = []
 
         if soup.find("h2", class_="timeline-end"):
@@ -165,7 +179,7 @@ class ScraperNitter:
             for tweet in tweets:
                 writer.writerow(tweet)
 
-    def get_tweets(self, query, since="", until="", near="", filters={}, excludes={}, save_csv=True, verbose=False, filename=None):
+    async def get_tweets(self, query, since="", until="", near="", filters={}, excludes={}, save_csv=True, verbose=False, filename=None):
         """
         Retrieves tweets based on the search query and parameters, saving them to a CSV file.
         """
@@ -177,7 +191,7 @@ class ScraperNitter:
         while True:
             if verbose:
                 print(f"Fetching tweets from: {self.domain + url + cursor}")
-            html_content, status_code = self.__fetch_tweets(url + cursor)
+            html_content, status_code = await self.__fetch_tweets(url + cursor)
 
             if status_code == 200:
                 tweets, new_cursor = self.__parse_tweets(html_content)
@@ -199,11 +213,20 @@ class ScraperNitter:
 
 
 if __name__ == "__main__":
-    claim = "the Earth has always warmed and cooled"
-    initial_date = "2023-01-01"
-    final_date = "2023-12-31"
-    filename = f'test_Earth_warmed_cooled_nokeywords_search_{initial_date}_to_{final_date}.csv'
-    scraper = ScraperNitter()
-    scraper.get_tweets(claim, excludes={"nativeretweets", "replies"}, filename=filename, since=initial_date, until=final_date)
-    scraper.close()
-    print(f"Scraping completed. Tweets saved to {filename}.")
+    async def main():
+        claim = "the Earth has always warmed and cooled"
+        initial_date = "2023-01-01"
+        final_date = "2023-12-31"
+        filename = f'test_Earth_warmed_cooled_{initial_date}_to_{final_date}.csv'
+
+        async with ScraperNitter() as scraper:
+            await scraper.get_tweets(
+                query=claim, 
+                since=initial_date, 
+                until=final_date, 
+                excludes={"nativeretweets", "replies"}, 
+                filename=filename)
+
+        print(f"Scraping completed. Tweets saved to {filename}.")
+
+    asyncio.run(main())
