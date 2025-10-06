@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
 from fastapi.staticfiles import StaticFiles
+import pandas as pd
+from visualization.app import run_app
 
 # Import backend pipeline
 from source_finder_nitter import SourceFinder
@@ -50,11 +52,24 @@ def analyze(req: AnalyzeRequest):
                 final_date=req.final_date,
             )
         elif req.mode == "find_all":
-            result = source_finder.find_all(
+            file_name, tweet_list = source_finder.find_all(
                 claim=req.text,
                 initial_date=req.initial_date,
                 final_date=req.final_date,
             )
+
+            if file_name is not None:
+                df = pd.read_csv(file_name) if tweet_list is None else tweet_list
+
+                df["text"] = (
+                    df["text"]
+                    .str.replace(r"\\n", "\n", regex=True)   # turn \n into newline
+                    .str.strip('"\'')                        # remove wrapping quotes
+                )
+
+                # Create and run the visualization app
+                run_app(df, claim, debug=False)
+
         else:
             return {"error": f"Unknown mode: {req.mode}"}
 

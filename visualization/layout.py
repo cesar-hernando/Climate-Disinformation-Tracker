@@ -9,14 +9,24 @@ def create_layout(df: pd.DataFrame, claim: str):
     }
 
     return html.Div([
-        html.H1("Source Finder", style={"text-align": "center"}),
+        dcc.Location(id='url', refresh=False),
+        html.H1("Source Tracker", style={"text-align": "center"}),
 
         # Store the dynamic data
         dcc.Store(id='data-store', data=df.to_dict('records')),
 
         html.H2(f"Claim: {claim}", style={"text-align": "center", "font-size": "20px", "font-weight": "normal", "margin-top": "0"}),
 
-        html.Div(id="first-entailment-tweet"),
+        html.Div(
+            [
+                html.H4(
+                    "First Found Entailing Tweet",
+                    style={ "textAlign": "left", "marginBottom": "8px", "margin-left": "8px", "fontWeight": "600" },
+                ),
+                html.Div(id="first-entailment-tweet"),
+            ],
+            style={"marginTop": "25px", "marginBottom": "15px"},
+        ),
 
         html.Div([
             html.Span("Show tweets:"),

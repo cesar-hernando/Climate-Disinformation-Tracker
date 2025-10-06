@@ -63,21 +63,21 @@ def tweet_bubble_chart(df):
     # Define colors for each alignment
     color_map = {"Entailment": "green", "Neutral": "gray", "Contradiction": "red"}
 
-    df["likes_for_size"] = df["likes"] + 4  # Shift likes to avoid zero size in chart
+    df["engagement"] = df["likes"] + df["comments"] + df["quotes"] + 4  # Shift to avoid zero size in chart
 
     # Build the bubble chart
     fig = px.scatter(
         df,
         x="created_at_datetime",
         y="retweets",             # y-axis = number of retweets
-        size="likes_for_size",          # bubble size = number of comments
+        size="engagement",          # bubble size = number of comments
         color="alignment",        # bubble color = alignment
         hover_data={
             "user": True,
             "retweets": True,
             "comments": True,
             "likes": True,
-            "likes_for_size": False
+            "engagement": False
         },
         color_discrete_map=color_map,
         title="Posts Bubble Chart",
@@ -85,6 +85,31 @@ def tweet_bubble_chart(df):
     
     fig.update_xaxes(title="Time", type="date")
     fig.update_yaxes(title="Number of Retweets", type="linear")
-    fig.update_traces(marker=dict(sizemode="area", sizeref=2.*max(df["likes_for_size"])/(52.**2), line_width=1))
-    fig.update_layout(legend=dict(itemclick=False, itemdoubleclick=False, title="Alignment"))
+    fig.update_traces(marker=dict(sizemode="area", sizeref=2.*max(df["engagement"])/(52.**2), line_width=1))
+    fig.update_layout(
+        legend=dict(itemclick=False, itemdoubleclick=False, title="Alignment"),
+        updatemenus=[
+            {
+                "type": "buttons",
+                "direction": "right",
+                "x": 1.15,
+                "y": 1.15,
+                "buttons": [
+                    {
+                        "label": "Linear Y-axis",
+                        "method": "relayout",
+                        "args": [{"yaxis.type": "linear"}],
+                    },
+                    {
+                        "label": "Log Y-axis",
+                        "method": "relayout",
+                        "args": [{"yaxis.type": "log"}],
+                    },
+                ],
+                "showactive": True,
+                "xanchor": "right",
+                "yanchor": "top"
+            }
+        ]
+    )
     return fig
