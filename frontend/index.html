@@ -35,23 +35,53 @@
           <label for="find_all">Find All</label>
         </div>
       </div>
+  
+      <div class="advanced-settings">
+        <button type="button" id="toggleAdvanced" class="toggle-btn">⚙️ Advanced Settings</button>
+        <div id="advancedContent" class="advanced-content" hidden>
+          <label for="domain_index">Domain Index</label>
+          <input type="text" id="domain_index" name="domain_index" value="5">
+
+          <label for="max_keywords">Max Keywords</label>
+          <input type="text" id="max_keywords" name="max_keywords" value="5">
+
+          <label for="n_keywords_dropped">Number of Keywords Dropped</label>
+          <input type="text" id="n_keywords_dropped" name="n_keywords_dropped" value="1">
+          
+          <label for="excludes">Excludes (comma-separated)</label>
+          <input type="text" id="excludes" name="excludes" value="nativeretweets,replies">
+        </div>
+      </div>
       
       <button type="submit" id="analyzeBtn">Analyze</button>
     </form>
-    <div id="result"></div>
+    <div id="result" style="display: none;"></div>
   </div>
 
   <script>
     const resultDiv = document.getElementById('result');
     const analyzeBtn = document.getElementById('analyzeBtn');
 
+    // Toggle advanced settings
+    document.getElementById('toggleAdvanced').addEventListener('click', () => {
+      document.getElementById('advancedContent').classList.toggle('show');
+    });
+
     document.getElementById('detectForm').addEventListener('submit', async function(e) {
       e.preventDefault();
-      
+
+      // Toggle results
+      document.getElementById('result').style.display = 'flex';
+      // document.getElementById('result').style.display === 'none' ? 'flex' : 'none';
+
       const text = document.getElementById('textInput').value;
       const initialDate = document.getElementById('initialDate').value || "";
       const finalDate = document.getElementById('finalDate').value || "";
       const mode = document.querySelector('input[name="mode"]:checked').value;
+      const domain_index = parseInt(document.getElementById('domain_index').value) || 5;
+      const max_keywords = parseInt(document.getElementById('max_keywords').value) || 5;
+      const n_keywords_dropped = parseInt(document.getElementById('n_keywords_dropped').value) || 1;
+      const excludes = document.getElementById('excludes').value.split(',').map(s => s.trim()) || ["nativeretweets", "replies"];
 
       // disable button during request
       analyzeBtn.disabled = true;
@@ -68,6 +98,10 @@
               initial_date: initialDate, 
               final_date: finalDate,
               mode: mode,
+              domain_index: domain_index,
+              max_keywords: max_keywords,
+              n_keywords_dropped: n_keywords_dropped,
+              excludes: excludes
             })
         });
 
@@ -75,7 +109,6 @@
           const data = await response.json();
 
           if (data) {
-            console.log(data);
             // build HTML card for result
             resultDiv.innerHTML = `
               <div class="result-card">

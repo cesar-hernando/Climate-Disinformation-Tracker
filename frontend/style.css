@@ -118,6 +118,38 @@ button:disabled {
   animation: spin 0.7s linear infinite;
 }
 
+/* Toggle button styling */
+.toggle-btn {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95em;
+  margin-bottom: 10px;
+  transition: background-color 0.3s;
+}
+
+.toggle-btn:hover {
+  background-color: #0056b3;
+}
+
+/* Collapsible content */
+.advanced-content {
+  display: none;
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background-color: #fafafa;
+}
+
+.advanced-content.show {
+  display: block;
+}
+
+
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
