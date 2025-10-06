@@ -135,6 +135,24 @@ button:disabled {
   background-color: #0056b3;
 }
 
+/* Dropdown */
+select {
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.95em;
+  width: 100%;
+  box-sizing: border-box;
+  background-color: #fff;
+  margin-bottom: 15px;
+}
+
+select:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+
 /* Collapsible content */
 .advanced-content {
   display: none;

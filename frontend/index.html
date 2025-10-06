@@ -39,8 +39,18 @@
       <div class="advanced-settings">
         <button type="button" id="toggleAdvanced" class="toggle-btn">⚙️ Advanced Settings</button>
         <div id="advancedContent" class="advanced-content" hidden>
-          <label for="domain_index">Domain Index</label>
-          <input type="text" id="domain_index" name="domain_index" value="5">
+          <label for="domain_index">Domain</label>
+          <select id="domain_index" name="domain_index">
+            <option value="0">https://xcancel.com</option>
+            <option value="1">https://nitter.poast.org</option>
+            <option value="2">https://nitter.privacyredirect.com</option>
+            <option value="3">https://lightbrd.com</option>
+            <option value="4">https://nitter.space</option>
+            <option value="5" selected>https://nitter.tiekoetter.com</option>
+            <option value="6">https://nuku.trabun.org</option>
+            <option value="7">https://nitter.kuuro.net</option>
+            <option value="8">https://worldcorrespondents.com</option>
+          </select>
 
           <label for="max_keywords">Max Keywords</label>
           <input type="text" id="max_keywords" name="max_keywords" value="5">
@@ -72,7 +82,6 @@
 
       // Toggle results
       document.getElementById('result').style.display = 'flex';
-      // document.getElementById('result').style.display === 'none' ? 'flex' : 'none';
 
       const text = document.getElementById('textInput').value;
       const initialDate = document.getElementById('initialDate').value || "";
