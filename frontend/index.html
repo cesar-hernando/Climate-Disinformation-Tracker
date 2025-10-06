@@ -11,6 +11,19 @@
     <h2>Climate Disinformation Detector</h2>
     <form id="detectForm">
       <input type="text" id="textInput" placeholder="Enter text to analyze..." required>
+
+      <div class="date-inputs">
+        <div>
+          <label for="initialDate">Initial Date:</label>
+          <input type="date" id="initialDate" name="initialDate">
+        </div>
+        
+        <div>
+          <label for="finalDate">Final Date:</label>
+          <input type="date" id="finalDate" name="finalDate">
+        </div>
+      </div>
+
       <button type="submit" id="analyzeBtn">Analyze</button>
     </form>
     <div id="result"></div>
@@ -22,7 +35,10 @@
 
     document.getElementById('detectForm').addEventListener('submit', async function(e) {
       e.preventDefault();
+      
       const text = document.getElementById('textInput').value;
+      const initialDate = document.getElementById('initialDate').value || "";
+      const finalDate = document.getElementById('finalDate').value || "";
 
       // disable button during request
       analyzeBtn.disabled = true;
@@ -30,16 +46,37 @@
       // show spinner + text
       resultDiv.innerHTML = '<div class="spinner"></div> Analyzing...';
 
+      console.log(initialDate);
+      console.log(finalDate)
+
       try {
         const response = await fetch('http://127.0.0.1:8000/api/analyze', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text })
+            body: JSON.stringify({ 
+              text,
+              initial_date: initialDate, 
+              final_date: finalDate
+            })
         });
 
         if (response.ok) {
           const data = await response.json();
-          resultDiv.textContent = data.result || 'No result returned.';
+
+          if (data) {
+            // build HTML card for result
+            resultDiv.innerHTML = `
+              <div class="result-card">
+                <p><strong>User:</strong> ${data.user}</p>
+                <p><strong>Text:</strong> ${data.text}</p>
+                <p><strong>Date:</strong> ${new Date(data.created_at_datetime).toLocaleString()}</p>
+                <p><strong>Engagement:</strong> 👍 ${data.likes} | 🔁 ${data.retweets} | 💬 ${data.comments} | 🔗 ${data.quotes}</p>
+                <p><a href="https://twitter.com${data.link}" target="_blank">View on Twitter</a></p>
+              </div>
+            `;
+          } else {
+            resultDiv.textContent = 'No result returned.';
+          }
         } else {
           resultDiv.textContent = 'Error analyzing text.';
         }

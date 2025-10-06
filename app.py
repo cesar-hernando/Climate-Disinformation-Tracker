@@ -8,8 +8,6 @@ from fastapi.staticfiles import StaticFiles
 from source_finder_nitter import SourceFinder
 
 app = FastAPI(title="Climate Disinformation Detector API")
-# TODO: check if static mounting is necessary
-# app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
 
 app.add_middleware(
     CORSMiddleware,
@@ -23,8 +21,8 @@ app.add_middleware(
 class AnalyzeRequest(BaseModel):
     text: str
     mode: str = "find_source"  # "find_source" or "find_all", see if necessary
-    initial_date: Optional[str] = None  
-    final_date: Optional[str] = None    
+    initial_date: str = ""  
+    final_date: str = ""    
     max_keywords: int = 5
     max_tweets: int = 200
     top_k: int = 3
@@ -43,7 +41,7 @@ source_finder = SourceFinder(domain_index=domain_index,
                              excludes=excludes)
 
 @app.post("/api/analyze")
-async def analyze(req: AnalyzeRequest):
+def analyze(req: AnalyzeRequest):
     try:
         if req.mode == "find_source":
             result = source_finder.find_source(
@@ -60,6 +58,9 @@ async def analyze(req: AnalyzeRequest):
         else:
             return {"error": f"Unknown mode: {req.mode}"}
 
-        return {"result": result}
+        return result[0] # TODO: check if we want to return more
     except Exception as e:
         return {"error": str(e)}
+
+# Mount index.html
+app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
