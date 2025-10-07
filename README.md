@@ -17,6 +17,10 @@ This project detects the origins and spread of climate-related disinformation on
 - `results/`: Stores CSVs of scraped tweets/results.
 
 ## Developer Workflows
+- **Requirments:**
+  ```
+  python >= 3.11
+  ```
 - **Install dependencies:**
   ```bash
   pip install -r requirements.txt
@@ -28,10 +32,13 @@ This project detects the origins and spread of climate-related disinformation on
   ```bash
   python main.py
   ```
-- **Run using User Interface:**
-  ```
-  uvicorn app:app --reload
-  ```
+```bash
+# On Linux/macOS:
+uvicorn app:app --reload
+
+# On Windows:
+uvicorn app:app
+```
   Then the user interface should be accessible at `http://127.0.0.1:8000`
 - **Environment:**
   - Uses Playwright for browser automation (Firefox by default).

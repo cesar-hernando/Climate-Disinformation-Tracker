@@ -118,6 +118,79 @@ button:disabled {
   animation: spin 0.7s linear infinite;
 }
 
+/* Toggle button styling */
+.toggle-btn {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95em;
+  margin-bottom: 10px;
+  transition: background-color 0.3s;
+}
+
+.toggle-btn:hover {
+  background-color: #0056b3;
+}
+
+/* Dropdown */
+select {
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.95em;
+  width: 100%;
+  box-sizing: border-box;
+  background-color: #fff;
+  margin-bottom: 15px;
+}
+
+select:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+/* Checkboxes */
+.checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-top: 6px;
+}
+
+.checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.9em;
+  background: #f8f9fa;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+
+.checkbox-group input[type="checkbox"] {
+  transform: scale(1.1);
+}
+
+
+/* Collapsible content */
+.advanced-content {
+  display: none;
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background-color: #fafafa;
+}
+
+.advanced-content.show {
+  display: block;
+}
+
+
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }

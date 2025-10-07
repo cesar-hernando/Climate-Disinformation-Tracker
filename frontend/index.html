@@ -35,23 +35,79 @@
           <label for="find_all">Find All</label>
         </div>
       </div>
+  
+      <div class="advanced-settings">
+        <button type="button" id="toggleAdvanced" class="toggle-btn">⚙️ Advanced Settings</button>
+        <div id="advancedContent" class="advanced-content" hidden>
+          <label for="domain_index">Domain</label>
+          <select id="domain_index" name="domain_index">
+            <option value="0">https://xcancel.com</option>
+            <option value="1">https://nitter.poast.org</option>
+            <option value="2">https://nitter.privacyredirect.com</option>
+            <option value="3">https://lightbrd.com</option>
+            <option value="4">https://nitter.space</option>
+            <option value="5" selected>https://nitter.tiekoetter.com</option>
+            <option value="6">https://nuku.trabun.org</option>
+            <option value="7">https://nitter.kuuro.net</option>
+            <option value="8">https://worldcorrespondents.com</option>
+          </select>
+
+          <label for="max_keywords">Max Keywords</label>
+          <input type="text" id="max_keywords" name="max_keywords" value="5">
+
+          <label for="n_keywords_dropped">Number of Keywords Dropped</label>
+          <input type="text" id="n_keywords_dropped" name="n_keywords_dropped" value="1">
+          
+          <label>Excludes</label>
+          <div id="excludes" class="checkbox-group">
+            <label><input type="checkbox" value="nativeretweets" checked> nativeretweets</label>
+            <label><input type="checkbox" value="media"> media</label>
+            <label><input type="checkbox" value="videos"> videos</label>
+            <label><input type="checkbox" value="news"> news</label>
+            <label><input type="checkbox" value="verified"> verified</label>
+            <label><input type="checkbox" value="native_video"> native_video</label>
+            <label><input type="checkbox" value="replies" checked> replies</label>
+            <label><input type="checkbox" value="links"> links</label>
+            <label><input type="checkbox" value="images"> images</label>
+            <label><input type="checkbox" value="safe"> safe</label>
+            <label><input type="checkbox" value="quote"> quote</label>
+            <label><input type="checkbox" value="pro_video"> pro_video</label>
+          </div>
+
+        </div>
+      </div>
       
       <button type="submit" id="analyzeBtn">Analyze</button>
     </form>
-    <div id="result"></div>
+    <div id="result" style="display: none;"></div>
   </div>
 
   <script>
     const resultDiv = document.getElementById('result');
     const analyzeBtn = document.getElementById('analyzeBtn');
 
+    // Toggle advanced settings
+    document.getElementById('toggleAdvanced').addEventListener('click', () => {
+      document.getElementById('advancedContent').classList.toggle('show');
+    });
+
     document.getElementById('detectForm').addEventListener('submit', async function(e) {
       e.preventDefault();
-      
+
+      // Toggle results
+      document.getElementById('result').style.display = 'flex';
+
       const text = document.getElementById('textInput').value;
       const initialDate = document.getElementById('initialDate').value || "";
       const finalDate = document.getElementById('finalDate').value || "";
       const mode = document.querySelector('input[name="mode"]:checked').value;
+      const domain_index = parseInt(document.getElementById('domain_index').value) || 5;
+      const max_keywords = parseInt(document.getElementById('max_keywords').value) || 5;
+      const n_keywords_dropped = parseInt(document.getElementById('n_keywords_dropped').value) || 1;
+      const excludes = Array.from(
+        document.querySelectorAll('#excludes input[type="checkbox"]:checked')
+      ).map(cb => cb.value);
+
 
       // disable button during request
       analyzeBtn.disabled = true;
@@ -68,6 +124,10 @@
               initial_date: initialDate, 
               final_date: finalDate,
               mode: mode,
+              domain_index: domain_index,
+              max_keywords: max_keywords,
+              n_keywords_dropped: n_keywords_dropped,
+              excludes: excludes
             })
         });
 
@@ -75,7 +135,6 @@
           const data = await response.json();
 
           if (data) {
-            console.log(data);
             // build HTML card for result
             resultDiv.innerHTML = `
               <div class="result-card">
