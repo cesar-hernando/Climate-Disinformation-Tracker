@@ -29,7 +29,6 @@ class AlignmentModel:
         label = torch.argmax(logits, dim=-1).item()
         if verbose:
             print(f'    => {self.labels[label]}')
-        label = torch.argmax(logits, dim=-1).item()
         return label
     
     def batch_predict(self, original_claim, tweets, batch_size=16, verbose=False):
