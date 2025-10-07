@@ -31,15 +31,18 @@ form {
   gap: 12px;
 }
 
-.date-inputs {
+.date-inputs, .mode-selection {
   display: flex;
   justify-content: center;
   gap: 1rem;
 }
 
-.date-inputs > div {
+.date-inputs > div, .mode-selection > div {
   display: flex;
   gap: 0.5rem;
+}
+
+.date-inputs > div {
   flex-direction: column;
 }
 
@@ -114,6 +117,56 @@ button:disabled {
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
+
+/* Toggle button styling */
+.toggle-btn {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95em;
+  margin-bottom: 10px;
+  transition: background-color 0.3s;
+}
+
+.toggle-btn:hover {
+  background-color: #0056b3;
+}
+
+/* Dropdown */
+select {
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.95em;
+  width: 100%;
+  box-sizing: border-box;
+  background-color: #fff;
+  margin-bottom: 15px;
+}
+
+select:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+
+/* Collapsible content */
+.advanced-content {
+  display: none;
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background-color: #fafafa;
+}
+
+.advanced-content.show {
+  display: block;
+}
+
 
 @keyframes spin {
   0% { transform: rotate(0deg); }

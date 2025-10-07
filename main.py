@@ -3,21 +3,22 @@ Main script to run the Source Finder using Nitter as the data source.
 """
 
 # Suppress TensorFlow warnings
-#import os, logging
-#os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+import os, logging
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
-#import tensorflow as tf
-#tf.get_logger().setLevel(logging.ERROR)
+import tensorflow as tf
+tf.get_logger().setLevel(logging.ERROR)
 
 import time
+import asyncio
 from source_finder_nitter import SourceFinder
 from visualization.app import run_app
 import pandas as pd
 
 # Suppress other warnings from imported AI models
-#import warnings
-#warnings.filterwarnings("ignore", category=UserWarning)
-#warnings.filterwarnings("ignore", category=DeprecationWarning)
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 
 ##################################################
