@@ -8,6 +8,8 @@ This project detects the origins and spread of climate-related disinformation on
 - Aligning/contradicting tweets to claims using a transformer-based model (mDeBERTa-v3-base-mnli-xnli)
 - Identifying the oldest aligned tweet as the likely source
 
+It further has the option to analyze all tweets and create a visualization.
+
 ## Key Components
 - `main.py`: Entry point. Demonstrates end-to-end pipeline for a sample claim.
 - `source_finder_nitter.py`: Orchestrates the pipeline. Key class: `SourceFinder`.
@@ -15,6 +17,7 @@ This project detects the origins and spread of climate-related disinformation on
 - `query_generator.py`: Extracts keywords from claims (KeyBERT) and builds search queries.
 - `alignment.py`: Loads and applies a transformer model to classify tweet alignment (entailment/neutral/contradiction).
 - `results/`: Stores CSVs of scraped tweets/results.
+- `visualization/`: Contains files to create visualization of tweets using Dash
 
 ## Developer Workflows
 - **Requirments:**
@@ -32,6 +35,8 @@ This project detects the origins and spread of climate-related disinformation on
   ```bash
   python main.py
   ```
+
+**Run tool with UI**
 ```bash
 # On Linux/macOS:
 uvicorn app:app --reload
