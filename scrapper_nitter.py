@@ -2,7 +2,6 @@
 Module for scraping data from Nitter using Playwright.
 Nitter is a free and open source alternative Twitter front-end focused on privacy.
 """
-
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import quote_plus

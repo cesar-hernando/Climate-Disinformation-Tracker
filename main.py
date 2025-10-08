@@ -73,15 +73,7 @@ async def main():
         print(f"\nExecution time of the Source Finder: {run_time:.2f} s\n")
 
         if file_name is not None:
-            df = pd.read_csv(file_name) if tweet_list is None else tweet_list
-
-            df["text"] = (
-                df["text"]
-                .str.replace(r"\\n", "\n", regex=True)   # turn \n into newline
-                .str.strip('"\'')                        # remove wrapping quotes
-            )
-
             # Create and run the visualization app
-            run_app(df, claim, debug=True)
+            run_app(file_name, claim, debug=True)
 
 asyncio.run(main())

@@ -18,7 +18,7 @@ def run_app(filename: str, claim: str, debug: bool = False, use_reloader: bool =
 
     df["text"] = df["text"].str.replace(r"\\n", "\n", regex=True).str.strip('"\'')  # turn \n into newline and remove wrapping quotes
 
-    app = Dash(__name__, title="Dashboard")
+    app = Dash(__name__, title="Visualization")
 
     # Assign layout
     app.layout = layout.create_layout(df, claim)
@@ -41,7 +41,7 @@ def create_app(filename, claim):
     df["text"] = df["text"].str.replace(r"\\n", "\n", regex=True).str.strip('"\'')  # turn \n into newline and remove wrapping quotes
     
     path = filename.split("data/", maxsplit=1)[-1].replace(".csv", "")
-    app = Dash(__name__, title="Dashboard", requests_pathname_prefix=f"/dashboard/{path}/")
+    app = Dash(__name__, title="Visualization", requests_pathname_prefix=f"/visualization/{path}/")
 
     # Assign layout
     app.layout = layout.create_layout(df, claim)

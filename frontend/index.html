@@ -147,9 +147,8 @@
                 </div>
               `;
             } else if (mode === 'find_all') {
-              const filename = data; // The filename returned by the API
-              console.log(data);
-              const dashboardResponse = await fetch('/api/dashboard', {
+              const filename = data; // The filename containing the data to visualize returned by the API
+              const dashboardResponse = await fetch('/api/visualization', {
                   method: 'POST',
                   headers: {
                       'Content-Type': 'application/json'
@@ -159,7 +158,6 @@
                       claim: text
                   })
               });
-              console.log(dashboardResponse);
               if (dashboardResponse.ok) {
                 const dashboardData = await dashboardResponse.json();
                 if (dashboardData.redirect_url) {
