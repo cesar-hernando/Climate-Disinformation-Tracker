@@ -162,6 +162,7 @@
                 const dashboardData = await dashboardResponse.json();
                 if (dashboardData.redirect_url) {
                   // Redirect browser to the new dashboard
+                  resultDiv.innerHTML = '<div class="spinner"></div> Launching dashboard... Redirecting now.';
                   window.location.href = dashboardData.redirect_url;
                 }
               } else {

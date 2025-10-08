@@ -81,7 +81,9 @@ async def analyze(req: AnalyzeRequest):
 def serve_dashboard(req: VisualizationRequest):
     dash_app = create_app(req.filename, req.claim)
     path = req.filename.split("data/", maxsplit=1)[-1].replace(".csv", "")
-    app.mount(f"/visualization/{path}", WSGIMiddleware(dash_app.server))
+    # Only mount if not already mounted
+    if not any(route.path == f"/visualization/{path}/" for route in app.routes):
+        app.mount(f"/visualization/{path}", WSGIMiddleware(dash_app.server))
     return {"redirect_url": f"/visualization/{path}"}
 
 # Root endpoint serves the frontend
