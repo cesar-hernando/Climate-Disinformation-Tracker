@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Source Tracker</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="static/style.css">
 </head>
 <body>
   <div class="container">
@@ -136,15 +136,41 @@
 
           if (data) {
             // build HTML card for result
-            resultDiv.innerHTML = `
-              <div class="result-card">
-                <p><strong>User:</strong> ${data.user}</p>
-                <p><strong>Text:</strong> ${data.text}</p>
-                <p><strong>Date:</strong> ${new Date(data.created_at_datetime).toLocaleString()}</p>
-                <p><strong>Engagement:</strong> 👍 ${data.likes} | 🔁 ${data.retweets} | 💬 ${data.comments} | 🔗 ${data.quotes}</p>
-                <p><a href="https://twitter.com${data.link}" target="_blank">View on Twitter</a></p>
-              </div>
-            `;
+            if (mode === 'find_source') {
+              resultDiv.innerHTML = `
+                <div class="result-card">
+                  <p><strong>User:</strong> ${data.user}</p>
+                  <p><strong>Text:</strong> ${data.text}</p>
+                  <p><strong>Date:</strong> ${new Date(data.created_at_datetime).toLocaleString()}</p>
+                  <p><strong>Engagement:</strong> 👍 ${data.likes} | 🔁 ${data.retweets} | 💬 ${data.comments} | 🔗 ${data.quotes}</p>
+                  <p><a href="https://twitter.com${data.link}" target="_blank">View on Twitter</a></p>
+                </div>
+              `;
+            } else if (mode === 'find_all') {
+              const filename = data; // The filename returned by the API
+              console.log(data);
+              const dashboardResponse = await fetch('/api/dashboard', {
+                  method: 'POST',
+                  headers: {
+                      'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({
+                      filename: filename,
+                      claim: text
+                  })
+              });
+              console.log(dashboardResponse);
+              if (dashboardResponse.ok) {
+                const dashboardData = await dashboardResponse.json();
+                if (dashboardData.redirect_url) {
+                  // Redirect browser to the new dashboard
+                  window.location.href = dashboardData.redirect_url;
+                }
+              } else {
+                resultDiv.textContent = 'Error launching dashboard.';
+              }
+            }
+            
           } else {
             resultDiv.textContent = 'No result returned.';
           }

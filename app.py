@@ -1,9 +1,12 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.wsgi import WSGIMiddleware
+from fastapi.responses import FileResponse, RedirectResponse
 from pydantic import BaseModel
 from fastapi.staticfiles import StaticFiles
 import pandas as pd
-from visualization.app import run_app
+from visualization.app import run_app, create_app
 
 # Import backend pipeline
 from source_finder_nitter import SourceFinder
@@ -29,6 +32,10 @@ class AnalyzeRequest(BaseModel):
     domain_index: int = 5 # Index of the Nitter domain to use, change if one domain is down
     n_keywords_dropped: int = 1 # No advanced search if n_keywords_dropped = 0
     excludes: set = {"nativeretweets", "replies"}
+
+class DashboardRequest(BaseModel):
+    filename: str
+    claim: str
 
 # Define source finder parameters 
 claim = "Masks don't work against viruses - government lies to control us"
@@ -56,18 +63,10 @@ async def analyze(req: AnalyzeRequest):
                 initial_date=req.initial_date,
                 final_date=req.final_date,
             )
-
             if file_name is not None:
-                df = pd.read_csv(file_name) if tweet_list is None else tweet_list
-
-                df["text"] = (
-                    df["text"]
-                    .str.replace(r"\\n", "\n", regex=True)   # turn \n into newline
-                    .str.strip('"\'')                        # remove wrapping quotes
-                )
-
-                # Create and run the visualization app
-                run_app(df, req.text, debug=False)
+                return file_name
+            else:
+                return {"error": "No tweets found"}
 
         else:
             return {"error": f"Unknown mode: {req.mode}"}
@@ -75,6 +74,19 @@ async def analyze(req: AnalyzeRequest):
         return result[0] # TODO: check if we want to return more
     except Exception as e:
         return {"error": str(e)}
+    
+@app.post("/api/dashboard")
+def serve_dashboard(req: DashboardRequest):
+    dash_app = create_app(req.filename, req.claim)
+    path = req.filename.split("data/", maxsplit=1)[-1].replace(".csv", "")
+    app.mount(f"/dashboard/{path}", WSGIMiddleware(dash_app.server))
+    # Redirect to the mounted Dash app
+    return {"redirect_url": f"/dashboard/{path}"}
 
-# Mount index.html
-app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
+# Root endpoint serves the frontend
+@app.get("/")
+def root():
+    return FileResponse(os.path.join("frontend", "index.html"))
+
+# Mount static files
+app.mount("/static", StaticFiles(directory="frontend"), name="static")

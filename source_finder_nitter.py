@@ -102,19 +102,20 @@ class SourceFinder:
                 query=query, 
                 since=initial_date, 
                 until=final_date, 
+                save_csv=False,
                 excludes={"nativeretweets", "replies"}, 
-                filename=filename)
-        
-        if tweets_list:
-            print(f"\nScraping completed satisfactorily.\n")
-        else:
-            print(f"\nNo tweets were found.\n")
-            return None, None
-        
-        tweets_list = self.predict_alignment(claim, tweets_list, filename)
-        df = pd.DataFrame(tweets_list)
+                filename=filename,
+                )
+    
+            if tweets_list:
+                print(f"\nScraping completed satisfactorily.\n")
+                tweets_list = self.predict_alignment(claim, tweets_list, filename)
+                df = pd.DataFrame(tweets_list)
 
-        return filename, df
+                return filename, df
+            else:
+                print(f"\nNo tweets were found.\n")
+                return None, None
         
 
     async def find_source(self, claim, initial_date="", final_date="", step=1):
