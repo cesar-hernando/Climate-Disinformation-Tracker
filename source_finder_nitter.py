@@ -96,7 +96,9 @@ class SourceFinder:
         if os.path.exists(filename):
             print(f"\nFile {filename} already exists.\n")
             return filename, None
-
+        
+        print(f"\nRetrieving tweets from {initial_date} to {final_date}...")
+        
         async with ScraperNitter(domain_index=self.domain_index) as scraper:
             tweets_list = await scraper.get_tweets(
                 query=query, 

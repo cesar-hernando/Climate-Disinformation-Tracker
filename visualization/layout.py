@@ -9,7 +9,6 @@ def create_layout(df: pd.DataFrame, claim: str):
     }
 
     return html.Div([
-        dcc.Location(id='url', refresh=False),
         html.H1("Source Tracker", style={"text-align": "center"}),
 
         # Store the dynamic data
