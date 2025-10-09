@@ -77,4 +77,14 @@ class AlignmentModel:
         """ Find the earliest tweet """
         tweets = sorted(tweets, key=lambda tweet: tweet['created_at_datetime'])
         return tweets[0]
+    
 
+if __name__ == "__main__":
+    model = AlignmentModel()
+    claim = "Climate change is just caused by natural cycles of the sun"
+    tweets = [
+        {"text": "The sun's cycles are responsible for climate change.", "created_at_datetime": "2020-01-01"},
+        {"text": "Climate change is just caused by natural cycles of the sun.", "created_at_datetime": "2019-01-01"},
+        {"text": "Climate change is a complex issue with multiple factors.", "created_at_datetime": "2021-01-01"},
+    ]
+    print(model.batch_predict(claim, tweets, verbose=True))

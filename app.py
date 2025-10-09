@@ -1,7 +1,12 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.wsgi import WSGIMiddleware
+from fastapi.responses import FileResponse, RedirectResponse
 from pydantic import BaseModel
 from fastapi.staticfiles import StaticFiles
+import pandas as pd
+from visualization.app import create_app
 
 # Import backend pipeline
 from source_finder_nitter import SourceFinder
@@ -28,6 +33,11 @@ class AnalyzeRequest(BaseModel):
     n_keywords_dropped: int = 1 # No advanced search if n_keywords_dropped = 0
     excludes: set = {"nativeretweets", "replies"}
 
+# Request schema for visualization
+class VisualizationRequest(BaseModel):
+    filename: str
+    claim: str
+
 # Define source finder parameters 
 claim = "Masks don't work against viruses - government lies to control us"
 
@@ -49,11 +59,16 @@ async def analyze(req: AnalyzeRequest):
                 final_date=req.final_date,
             )
         elif req.mode == "find_all":
-            result = await source_finder.find_all(
+            file_name, tweet_list = await source_finder.find_all(
                 claim=req.text,
                 initial_date=req.initial_date,
                 final_date=req.final_date,
             )
+            if file_name is not None:
+                return file_name
+            else:
+                return {"error": "No tweets found"}
+
         else:
             return {"error": f"Unknown mode: {req.mode}"}
 
@@ -61,5 +76,20 @@ async def analyze(req: AnalyzeRequest):
     except Exception as e:
         return {"error": str(e)}
 
-# Mount index.html
-app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
+# Endpoint to serve the Dash visualization app
+@app.post("/api/visualization")
+def serve_dashboard(req: VisualizationRequest):
+    dash_app = create_app(req.filename, req.claim)
+    path = req.filename.split("data/", maxsplit=1)[-1].replace(".csv", "")
+    # Only mount if not already mounted
+    if not any(route.path == f"/visualization/{path}/" for route in app.routes):
+        app.mount(f"/visualization/{path}", WSGIMiddleware(dash_app.server))
+    return {"redirect_url": f"/visualization/{path}"}
+
+# Root endpoint serves the frontend
+@app.get("/")
+def root():
+    return FileResponse(os.path.join("frontend", "index.html"))
+
+# Mount static files
+app.mount("/static", StaticFiles(directory="frontend"), name="static")

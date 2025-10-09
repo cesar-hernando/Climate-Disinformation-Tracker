@@ -2,7 +2,6 @@
 Module for scraping data from Nitter using Playwright.
 Nitter is a free and open source alternative Twitter front-end focused on privacy.
 """
-
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import quote_plus
@@ -125,8 +124,8 @@ class ScraperNitter:
             tweet_data["user"] = username.text.strip() if username else ""
 
             content = tweet.find("div", class_="tweet-content")
-            content = content.text.strip().replace("\n", " ").replace(",", "&#44;") if content else ""
-            tweet_data["text"] = content if content else ""
+            content = content.text.strip().replace("\n", "\\n") if content else ""
+            tweet_data["text"] = f'"{content}"' if content else ""  # Wrap text in quotes to handle commmas in CSV
 
             timestamp = tweet.find("span", class_="tweet-date")
             tweet_data["created_at_datetime"] = ts_to_iso8601(timestamp.a["title"].strip()) if timestamp and timestamp.a else ""
@@ -136,15 +135,15 @@ class ScraperNitter:
 
             tweet_stat = tweet.find_all("span", class_="tweet-stat")
             if len(tweet_stat) < 4:
-                tweet_data["comments"] = "0"
-                tweet_data["retweets"] = "0"
-                tweet_data["quotes"] = "0"
-                tweet_data["likes"] = "0"
+                tweet_data["comments"] = 0
+                tweet_data["retweets"] = 0
+                tweet_data["quotes"] = 0
+                tweet_data["likes"] = 0
             else:
-                tweet_data["comments"] = tweet_stat[0].div.text.strip() if tweet_stat[0].div.text.strip() else "0"
-                tweet_data["retweets"] = tweet_stat[1].div.text.strip() if tweet_stat[1].div.text.strip() else "0"
-                tweet_data["quotes"] = tweet_stat[2].div.text.strip() if tweet_stat[2].div.text.strip() else "0"
-                tweet_data["likes"] = tweet_stat[3].div.text.strip() if tweet_stat[3].div.text.strip() else "0"
+                tweet_data["comments"] = int(tweet_stat[0].div.text.strip().replace(",", "")) if tweet_stat[0].div.text.strip() else 0
+                tweet_data["retweets"] = int(tweet_stat[1].div.text.strip().replace(",", "")) if tweet_stat[1].div.text.strip() else 0
+                tweet_data["quotes"] = int(tweet_stat[2].div.text.strip().replace(",", "")) if tweet_stat[2].div.text.strip() else 0
+                tweet_data["likes"] = int(tweet_stat[3].div.text.strip().replace(",", "")) if tweet_stat[3].div.text.strip() else 0
 
             tweets.append(tweet_data)
 
