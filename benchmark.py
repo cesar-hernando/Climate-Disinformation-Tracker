@@ -33,7 +33,8 @@ excludes = {"nativeretweets", "replies"}  # Filters to exclude from search
 initial_date = "2007-01-01"               # Start date for searching tweets
 final_date = "2025-01-01"                 # End date for searching tweets
 step = 1                                  # Step in years for searching tweets in find_source mode
-filename = "benchmark_results.csv"        # Output CSV file for results
+filename = "benchmark_results_bymonth.csv"        # Output CSV file for results
+by_month = True                        # Whether to use monthly steps in high volume mode
 
 
 ##################################################
@@ -53,9 +54,14 @@ async def process_claim(claim, writer):
     )
 
     try:
-        oldest_aligned_tweet, _ = await source_finder.find_source(
-            claim, initial_date, final_date, step
-        )
+        if by_month:
+            oldest_aligned_tweet, _ = await source_finder.find_source_high_volume(
+                claim, initial_date, final_date, step_years=step
+            )
+        else:
+            oldest_aligned_tweet, _ = await source_finder.find_source(
+                claim, initial_date, final_date, step
+            )
 
         tweet_found = oldest_aligned_tweet is not None
         tweet_text = oldest_aligned_tweet["text"] if tweet_found else "No tweet found"
