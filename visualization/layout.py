@@ -9,18 +9,18 @@ def create_layout(df: pd.DataFrame, claim: str):
     }
 
     return html.Div([
-        html.H1("Source Tracker", style={"text-align": "center"}),
+        html.H1("Source Tracker", style={"textAlign": "center"}),
 
         # Store the dynamic data
         dcc.Store(id='data-store', data=df.to_dict('records')),
 
-        html.H2(f"Claim: {claim}", style={"text-align": "center", "font-size": "20px", "font-weight": "normal", "margin-top": "0"}),
+        html.H2(f"Claim: {claim}", style={"textAlign": "center", "fontSize": "20px", "fontWeight": "normal", "marginTop": "0"}),
 
         html.Div(
             [
                 html.H4(
                     "First Found Entailing Tweet",
-                    style={ "textAlign": "left", "marginBottom": "8px", "margin-left": "8px", "fontWeight": "600" },
+                    style={ "textAlign": "left", "marginBottom": "8px", "marginLeft": "8px", "fontWeight": "600" },
                 ),
                 html.Div(id="first-entailment-tweet"),
             ],
@@ -33,7 +33,7 @@ def create_layout(df: pd.DataFrame, claim: str):
                 id="alignment-checklist",
                 options=[{"label": label, "value": labels[label]} for label in labels.keys()],
                 value=list(labels.values()),  # default: all
-                style={"margin-top": "4px"}
+                style={"marginTop": "4px"}
             )
         ], className="alignment-filter"),
 
@@ -41,7 +41,7 @@ def create_layout(df: pd.DataFrame, claim: str):
         html.Div([
             html.Div([
                 dcc.Graph(id="bubble-chart")
-            ], id="bubble-chart-container", style={"flex": "3", "margin-right": "0px"}),
+            ], id="bubble-chart-container", style={"flex": "3", "marginRight": "0px"}),
 
             html.Div(
                 id="selected-tweet",
@@ -50,7 +50,7 @@ def create_layout(df: pd.DataFrame, claim: str):
                     "padding": "10px"
                 }
             )
-        ], style={"display": "flex", "flex-direction": "row", "margin-top": "20px", "height": "600px"}),
+        ], style={"display": "flex", "flexDirection": "row", "marginTop": "20px", "height": "600px"}),
 
         dcc.Store(id="selection-store", data={"date": None, "user": None}),
 
@@ -60,7 +60,7 @@ def create_layout(df: pd.DataFrame, claim: str):
             html.Div([
                 dcc.Graph(id="time-series", style={"flex": "0.6"}),
                 dcc.Graph(id="top-users", style={"flex": "0.4"})
-            ], style={"flex": "2", "display": "flex", "flex-direction": "row", "margin-right": "10px"}),
+            ], style={"flex": "2", "display": "flex", "flexDirection": "row", "marginRight": "10px"}),
 
             # Right side (tweet list + title + buttons)
             html.Div([
@@ -73,7 +73,7 @@ def create_layout(df: pd.DataFrame, claim: str):
                         html.Button("Remove Date Filter", id="reset-date", n_clicks=0, className="reset-button"),
                         html.Button("Remove User Filter", id="reset-user", n_clicks=0, className="reset-button")
                     ], className="reset-buttons")
-                ], style={"display": "flex", "justify-content": "space-between", "align-items": "center", "margin": "10px 0"}),
+                ], style={"display": "flex", "justifyContent": "space-between", "alignItems": "center", "margin": "10px 0"}),
 
                 
                 # Scrollable tweet list
@@ -90,6 +90,6 @@ def create_layout(df: pd.DataFrame, claim: str):
                     }
                 ),
             ], style={"flex": "1"})
-        ], style={"display": "flex", "flex-direction": "column", "margin": "10px 0"}),
+        ], style={"display": "flex", "flexDirection": "column", "margin": "10px 0"}),
 
     ])

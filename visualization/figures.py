@@ -110,6 +110,16 @@ def tweet_bubble_chart(df):
                 "xanchor": "right",
                 "yanchor": "top"
             }
+        ],
+        annotations=[
+            dict(
+                xref="paper", yref="paper",  # position relative to chart area
+                x=0, y=-0.15,  # bottom-right corner
+                text="Bubble size denotes total engagement<br>(likes + comments + quotes)",
+                showarrow=False,
+                align="left",
+                font=dict(size=12, color="gray"),
+            )
         ]
     )
     return fig
