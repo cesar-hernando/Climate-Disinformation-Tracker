@@ -16,13 +16,15 @@ in other areas as well.
 
 '''
 
-from scrapper_nitter import ScraperNitter
-from query_generator import QueryGenerator
-from alignment import AlignmentModel
 import time
 from datetime import date
 from collections import Counter
 import asyncio
+
+from scrapper_nitter import ScraperNitter
+from query_generator import QueryGenerator
+from alignment import AlignmentModel
+from query_builder_synonyms import SynonymQueryBuilder
 
 
 class SourceFinder:
@@ -53,21 +55,38 @@ class SourceFinder:
         print("-" * separator)
     
 
-    async def find_all(self, claim, initial_date="", final_date="", verbose=False):
+    async def find_all(self, claim, initial_date="", final_date="", verbose=False, synonyms=True, 
+                       model_name="en_core_web_md", top_n_syns=5, threshold=0.1, max_syns_per_kw=2):
         """
         Transforms a claim into a query for advanced search, retrieves tweets using Nitter, selects the
         tweets that align with the original claim, and obtains the oldest.
         """
-        query_generator = QueryGenerator(claim)
-        keywords = query_generator.extract_keywords(max_keywords=self.max_keywords)
-        query = query_generator.build_query(n_keywords_dropped=self.n_keywords_dropped, keywords=keywords)
+        if synonyms:
+            query_builder = SynonymQueryBuilder(
+                sentence=claim, 
+                max_keywords=self.max_keywords, 
+                model_name=model_name,
+                top_n_syns=top_n_syns,
+                threshold=threshold,
+                max_syns_per_kw=max_syns_per_kw
+            )
+            keywords = query_builder.keywords
+            query = query_builder.run()
+        else:
+            query_generator = QueryGenerator(claim)
+            keywords = query_generator.extract_keywords(max_keywords=self.max_keywords)
+            query = query_generator.build_query(n_keywords_dropped=self.n_keywords_dropped, keywords=keywords)
+
+        print(f"\nGenerated Boolean Query:\n{query}\n")
+
         if initial_date == "":
             initial_date = "2006-03-21" # Beginning of Twitter
 
         if final_date == "":
             final_date = date.today().strftime("%Y-%m-%d")
 
-        filename = "_".join(keywords) + f'_kpc_{self.max_keywords - self.n_keywords_dropped}_{initial_date}_to_{final_date}.csv' # kpc stands for keywords per clause
+        ind_syns = "with_syns" if synonyms else ""
+        filename = "_".join(keywords) + f'_kpc_{self.max_keywords - self.n_keywords_dropped}_{initial_date}_to_{final_date}_{ind_syns}.csv' # kpc stands for keywords per clause
 
         async with ScraperNitter(domain_index=self.domain_index) as scraper:
             tweets_list = await scraper.get_tweets(
@@ -77,6 +96,7 @@ class SourceFinder:
                 excludes={"nativeretweets", "replies"}, 
                 filename=filename)
         
+            print(f"Scraping url: {scraper._get_search_url(query, initial_date, final_date, excludes=self.excludes)}")
         if tweets_list:
             print(f"\nScraping completed satisfactorily. Tweets saved to {filename}.\n")
         else:
@@ -99,15 +119,29 @@ class SourceFinder:
             return None, None
         
 
-    async def find_source(self, claim, initial_date="", final_date="", step=1):
+    async def find_source(self, claim, initial_date="", final_date="", step=1, synonyms=True, 
+                          model_name="en_core_web_md", top_n_syns=5, threshold=0.1, max_syns_per_kw=2):
         """
         The workflow is similar to the method find_all but here we search in steps
         of step years, starting from the initial_date, and we stop once an aligned 
         tweet is found.
         """
-        query_generator = QueryGenerator(claim)
-        keywords = query_generator.extract_keywords(max_keywords=self.max_keywords)
-        query = query_generator.build_query(n_keywords_dropped=self.n_keywords_dropped, keywords=keywords)
+        if synonyms:
+            query_builder = SynonymQueryBuilder(
+                sentence=claim, 
+                max_keywords=self.max_keywords, 
+                model_name=model_name,
+                top_n_syns=top_n_syns,
+                threshold=threshold,
+                max_syns_per_kw=max_syns_per_kw
+            )
+            query = query_builder.run()
+        else:
+            query_generator = QueryGenerator(claim)
+            keywords = query_generator.extract_keywords(max_keywords=self.max_keywords)
+            query = query_generator.build_query(n_keywords_dropped=self.n_keywords_dropped, keywords=keywords)
+
+        print(f"\nGenerated Boolean Query:\n{query}\n")
 
         if initial_date == "":
             initial_date = "2006-03-21" # Beginning of Twitter
@@ -166,19 +200,30 @@ class SourceFinder:
         return None, None 
 
 
-    async def find_source_high_volume(self, claim, initial_date="", final_date="", step_years=1):
+    async def find_source_high_volume(self, claim, initial_date="", final_date="", step_years=1, synonyms=True, 
+                                     model_name="en_core_web_md", top_n_syns=5, threshold=0.1, max_syns_per_kw=2):
         """
         Similar to find_source, but optimized for high tweet volumes.
         For each year range (step_years), it first checks if any tweets exist.
         If tweets exist, it retrieves tweets month by month and checks alignment.
         Stops immediately when aligned tweets are found; otherwise moves to next year range.
         """
-        query_generator = QueryGenerator(claim)
-        keywords = query_generator.extract_keywords(max_keywords=self.max_keywords)
-        query = query_generator.build_query(
-            n_keywords_dropped=self.n_keywords_dropped,
-            keywords=keywords
-        )
+        if synonyms:
+            query_builder = SynonymQueryBuilder(
+                sentence=claim, 
+                max_keywords=self.max_keywords, 
+                model_name=model_name,
+                top_n_syns=top_n_syns,
+                threshold=threshold,
+                max_syns_per_kw=max_syns_per_kw
+            )
+            query = query_builder.run()
+        else:
+            query_generator = QueryGenerator(claim)
+            keywords = query_generator.extract_keywords(max_keywords=self.max_keywords)
+            query = query_generator.build_query(n_keywords_dropped=self.n_keywords_dropped, keywords=keywords)
+
+        print(f"\nGenerated Boolean Query:\n{query}\n")
 
         if initial_date == "":
             initial_date = "2006-03-21"  # Beginning of Twitter

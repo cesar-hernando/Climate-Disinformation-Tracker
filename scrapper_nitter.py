@@ -51,7 +51,7 @@ class ScraperNitter:
             return None
 
 
-    def __get_search_url(
+    def _get_search_url(
         self, query, since="", until="", near="", filters={}, excludes={}):
         """Constructs a Nitter search URL based on the given parameters."""
 
@@ -184,7 +184,7 @@ class ScraperNitter:
         Retrieves tweets based on the search query and parameters, saving them to a CSV file.
         """
 
-        url = self.__get_search_url(query, since, until, near, filters, excludes)
+        url = self._get_search_url(query, since, until, near, filters, excludes)
         cursor = ""
         all_tweets = []
 
