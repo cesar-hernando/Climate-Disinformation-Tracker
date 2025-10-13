@@ -39,15 +39,15 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 async def main():
     # Define the parameters of the search
-    claim = "Climate change is just caused by natural cycles of the sun"
+    claim = "Climate change is just a natural cycle - the Earth has always warmed and cooled"
     domain_index = 5 # Index of the Nitter domain to use, change if one domain is down
     max_keywords = 5 # Maximum number of keywords extracted
-    synonyms = False # Whether to use synonyms or not
+    synonyms = True # Whether to use synonyms or not
     n_keywords_dropped = 1 # No advanced search if n_keywords_dropped = 0
     excludes={"nativeretweets", "replies"}
     top_n_tweeters = 3 # Top usernames with more tweets about a topic
 
-    mode = 1 # 0 (find source) or 1 (retrieve all)
+    mode = 0 # 0 (find source) or 1 (retrieve all)
 
     model_name = "en_core_web_md" # Spacy model for contextual synonyms
     top_n_syns = 5 # Number of contextual synonyms to suggest per keyword
@@ -65,7 +65,7 @@ async def main():
         initial_date = "2007-01-01"
         final_date = "2025-01-01"
         step = 1
-        by_month = True # True or False
+        by_month = False # True or False
         if by_month:
             oldest_aligned_tweet, _ = await source_finder.find_source_high_volume(claim, initial_date, final_date, step_years=step, 
                                                                                   synonyms=synonyms, model_name=model_name, top_n_syns=top_n_syns, 
@@ -80,7 +80,7 @@ async def main():
     else: 
         initial_date = ""
         final_date = "2025-10-10"
-        filename, tweet_list = await source_finder.find_all(claim, initial_date, final_date, verbose=True, synonyms=synonyms, 
+        filename, tweet_list = await source_finder.find_all(claim, initial_date, final_date, verbose=False, synonyms=synonyms, 
                                                              model_name=model_name, top_n_syns=top_n_syns, 
                                                              threshold=threshold, max_syns_per_kw=max_syns_per_kw)
 

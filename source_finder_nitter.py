@@ -89,6 +89,7 @@ class SourceFinder:
             query_builder = SynonymQueryBuilder(
                 sentence=claim, 
                 max_keywords=self.max_keywords, 
+                n_keywords_dropped=self.n_keywords_dropped,
                 model_name=model_name,
                 top_n_syns=top_n_syns,
                 threshold=threshold,
@@ -117,7 +118,7 @@ class SourceFinder:
             return filename, None
         
         async with ScraperNitter(domain_index=self.domain_index) as scraper:
-            print(f"Scraping url: {scraper._get_search_url(query, initial_date, final_date, excludes=self.excludes)}")
+            print(f"Scraping url: {scraper.domain + scraper._get_search_url(query, initial_date, final_date, excludes=self.excludes)}")
             tweets_list = await scraper.get_tweets(
                 query=query, 
                 since=initial_date, 
@@ -138,7 +139,7 @@ class SourceFinder:
                 return None, None
         
 
-    async def find_source(self, claim, initial_date="", final_date="", step=1, synonyms=True, 
+    async def find_source(self, claim, initial_date="", final_date="", step=1, synonyms=False, 
                           model_name="en_core_web_md", top_n_syns=5, threshold=0.1, max_syns_per_kw=2):
         """
         The workflow is similar to the method find_all but here we search in steps
@@ -149,11 +150,13 @@ class SourceFinder:
             query_builder = SynonymQueryBuilder(
                 sentence=claim, 
                 max_keywords=self.max_keywords, 
+                n_keywords_dropped=self.n_keywords_dropped,
                 model_name=model_name,
                 top_n_syns=top_n_syns,
                 threshold=threshold,
                 max_syns_per_kw=max_syns_per_kw
             )
+            keywords = query_builder.keywords
             query = query_builder.run()
         else:
             query_generator = QueryGenerator(claim)
@@ -184,7 +187,6 @@ class SourceFinder:
                 prov_final_date = str(prov_final_year) + initial_date[4:]
 
                 print(f"\nRetrieving tweets from {prov_initial_date} to {prov_final_date}...")
-                filename = "_".join(keywords) + f'_kpc_{self.max_keywords - self.n_keywords_dropped}_{prov_initial_date}_to_{prov_final_date}.csv' # kpc stands for keywords per clause
 
                 tweets_list = await scraper.get_tweets(
                     query=query, 
@@ -192,7 +194,7 @@ class SourceFinder:
                     until=prov_final_date, 
                     excludes=self.excludes,
                     save_csv=False, 
-                    filename=filename)
+                    verbose=False)
                 
                 if tweets_list:
                     print(f"{len(tweets_list)} tweets were found.")
@@ -231,6 +233,7 @@ class SourceFinder:
             query_builder = SynonymQueryBuilder(
                 sentence=claim, 
                 max_keywords=self.max_keywords, 
+                n_keywords_dropped=self.n_keywords_dropped,
                 model_name=model_name,
                 top_n_syns=top_n_syns,
                 threshold=threshold,
@@ -266,7 +269,6 @@ class SourceFinder:
                 prov_final_date = str(prov_final_year) + initial_date[4:]
 
                 print(f"\nSearching tweets from {prov_initial_date} to {prov_final_date}...")
-                filename = "_".join(keywords) + f'_kpc_{self.max_keywords - self.n_keywords_dropped}_{prov_initial_date}_to_{prov_final_date}.csv'
 
                 # Quick check — are there tweets in this range at all?
                 tweets_found = await scraper.check_tweets_exist(
@@ -308,7 +310,6 @@ class SourceFinder:
                         until=prov_month_end,
                         excludes=self.excludes,
                         save_csv=False,
-                        filename=filename
                     )
 
                     if not month_tweets:
