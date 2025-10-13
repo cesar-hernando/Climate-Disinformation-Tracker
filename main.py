@@ -9,7 +9,7 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 import time
 import asyncio
 from source_finder_nitter import SourceFinder
-#from visualization.app import run_app
+from visualization.app import create_app
 
 # Suppress other warnings from imported AI models
 import warnings
@@ -79,7 +79,7 @@ async def main():
         print(f"\nExecution time of the Source Finder: {run_time:.2f} s\n")
     else: 
         initial_date = ""
-        final_date = ""
+        final_date = "2025-10-08"
         filename, tweet_list = await source_finder.find_all(claim, initial_date, final_date, synonyms=synonyms, 
                                                              model_name=model_name, top_n_syns=top_n_syns, 
                                                              threshold=threshold, max_syns_per_kw=max_syns_per_kw)
@@ -88,8 +88,9 @@ async def main():
         run_time = end_time - start_time
         print(f"\nExecution time of the Source Finder: {run_time:.2f} s\n")
 
-        #if file_name is not None:
-        #   # Create and run the visualization app
-        #    run_app(file_name, claim, debug=True)
+        if filename is not None:
+          # Create and run the visualization app
+           app = create_app(filename, claim)
+           app.run()
 
 asyncio.run(main())
