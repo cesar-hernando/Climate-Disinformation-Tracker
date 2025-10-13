@@ -94,7 +94,7 @@ class ScraperNitter:
         page = await self.context.new_page()
         full_url = self.domain + url
         try:
-            await page.goto(full_url, timeout=60000, wait_until="networkidle")
+            await page.goto(full_url, timeout=60000, wait_until="domcontentloaded")
             html = await page.content()
             status_code = 200
         except Exception as e:

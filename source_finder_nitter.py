@@ -117,17 +117,18 @@ class SourceFinder:
             return filename, None
         
         async with ScraperNitter(domain_index=self.domain_index) as scraper:
+            print(f"Scraping url: {scraper._get_search_url(query, initial_date, final_date, excludes=self.excludes)}")
             tweets_list = await scraper.get_tweets(
                 query=query, 
                 since=initial_date, 
                 until=final_date, 
                 save_csv=False,
-                excludes={"nativeretweets", "replies"}, 
+                excludes=self.excludes, 
+                verbose=verbose,
                 filename=filename)
         
-            print(f"Scraping url: {scraper._get_search_url(query, initial_date, final_date, excludes=self.excludes)}")
             if tweets_list:
-                print(f"\nScraping completed satisfactorily.\n")
+                print(f"\nScraping completed. Found {len(tweets_list)} tweets.\n")
                 tweets_list = self.predict_alignment(claim, tweets_list, filename)
                 df = pd.DataFrame(tweets_list)
 
@@ -189,7 +190,7 @@ class SourceFinder:
                     query=query, 
                     since=prov_initial_date, 
                     until=prov_final_date, 
-                    excludes={"nativeretweets", "replies"},
+                    excludes=self.excludes,
                     save_csv=False, 
                     filename=filename)
                 
@@ -272,7 +273,7 @@ class SourceFinder:
                     query=query,
                     since=prov_initial_date,
                     until=prov_final_date,
-                    excludes={"nativeretweets", "replies"},
+                    excludes=self.excludes,
                 )
 
                 if not tweets_found:
@@ -305,7 +306,7 @@ class SourceFinder:
                         query=query,
                         since=prov_month_start,
                         until=prov_month_end,
-                        excludes={"nativeretweets", "replies"},
+                        excludes=self.excludes,
                         save_csv=False,
                         filename=filename
                     )
