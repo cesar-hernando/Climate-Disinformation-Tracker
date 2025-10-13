@@ -213,7 +213,7 @@ class ScraperNitter:
     async def check_tweets_exist(self, query, since="", until="", near="", filters={}, excludes={}):
         """Check if there are any tweets matching the search query and parameters."""
 
-        url = self.__get_search_url(query, since, until, near, filters, excludes)
+        url = self._get_search_url(query, since, until, near, filters, excludes)
         html_content, status_code = await self.__fetch_tweets(url)
 
         if status_code == 200:
@@ -256,7 +256,7 @@ if __name__ == "__main__":
     async def main():
         claim = "the Earth has always warmed and cooled"
         initial_date = "2023-01-01"
-        final_date = "2023-12-31"
+        final_date = "2025-10-01"
         filename = f'test_Earth_warmed_cooled_{initial_date}_to_{final_date}.csv'
 
         async with ScraperNitter() as scraper:

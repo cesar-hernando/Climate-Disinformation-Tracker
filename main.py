@@ -47,7 +47,7 @@ async def main():
     excludes={"nativeretweets", "replies"}
     top_n_tweeters = 3 # Top usernames with more tweets about a topic
 
-    mode = 1 # 0 (find source) or 1 (retrieve all)
+    mode = 0 # 0 (find source) or 1 (retrieve all)
 
     model_name = "en_core_web_md" # Spacy model for contextual synonyms
     top_n_syns = 5 # Number of contextual synonyms to suggest per keyword
@@ -79,7 +79,7 @@ async def main():
         print(f"\nExecution time of the Source Finder: {run_time:.2f} s\n")
     else: 
         initial_date = ""
-        final_date = "2025-10-08"
+        final_date = ""
         filename, tweet_list = await source_finder.find_all(claim, initial_date, final_date, synonyms=synonyms, 
                                                              model_name=model_name, top_n_syns=top_n_syns, 
                                                              threshold=threshold, max_syns_per_kw=max_syns_per_kw)
