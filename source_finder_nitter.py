@@ -16,15 +16,15 @@ in other areas as well.
 
 '''
 
-from scrapper_nitter import ScraperNitter
-from query_generator import QueryGenerator
-from alignment import AlignmentModel
 import time
 from datetime import date
 from collections import Counter
 import asyncio
-import pandas as pd
-import os
+
+from scrapper_nitter import ScraperNitter
+from query_generator import QueryGenerator
+from alignment import AlignmentModel
+from query_builder_synonyms import SynonymQueryBuilder
 
 
 class SourceFinder:
@@ -53,82 +53,95 @@ class SourceFinder:
             else:
                 print(f"{field_name}: {value}")
         print("-" * separator)
-
-    def predict_alignment(self, claim, tweets_list, filename):
-        """
-        Saves the tweets along with their alignment to a CSV file.
-        """
-        alignment_model = AlignmentModel()
-        print(f"Predicting alignment for {len(tweets_list)} tweets...")
-        alignment_list = alignment_model.batch_predict(claim, tweets_list, batch_size=self.batch_size)
-
-        if not tweets_list or not alignment_list or len(tweets_list) != len(alignment_list):
-            print("No tweets or alignment data to save, or lengths do not match.")
-            return
-
-        # Add alignment to each tweet
-        for tweet, alignment in zip(tweets_list, alignment_list):
-            tweet['alignment'] = alignment
-
-        df = pd.DataFrame(tweets_list)
-        df.to_csv(filename, index=False, encoding='utf-8')
-
-        print(f"Tweets with alignment saved to {filename}.")
-        return df
     
-    async def find_all(self, claim, initial_date="", final_date="", verbose=False, data_folder="data/"):
+
+    async def find_all(self, claim, initial_date="", final_date="", verbose=False, synonyms=True, 
+                       model_name="en_core_web_md", top_n_syns=5, threshold=0.1, max_syns_per_kw=2):
         """
-        Transforms a claim into a query for advanced search, retrieves tweets using Nitter, predicts alignment of tweets with the claim,
-        and saves the tweets along with their alignment to a CSV file.
+        Transforms a claim into a query for advanced search, retrieves tweets using Nitter, selects the
+        tweets that align with the original claim, and obtains the oldest.
         """
-        query_generator = QueryGenerator(claim)
-        keywords = query_generator.extract_keywords(max_keywords=self.max_keywords)
-        query = query_generator.build_query(n_keywords_dropped=self.n_keywords_dropped, keywords=keywords)
+        if synonyms:
+            query_builder = SynonymQueryBuilder(
+                sentence=claim, 
+                max_keywords=self.max_keywords, 
+                model_name=model_name,
+                top_n_syns=top_n_syns,
+                threshold=threshold,
+                max_syns_per_kw=max_syns_per_kw
+            )
+            keywords = query_builder.keywords
+            query = query_builder.run()
+        else:
+            query_generator = QueryGenerator(claim)
+            keywords = query_generator.extract_keywords(max_keywords=self.max_keywords)
+            query = query_generator.build_query(n_keywords_dropped=self.n_keywords_dropped, keywords=keywords)
+
+        print(f"\nGenerated Boolean Query:\n{query}\n")
+
         if initial_date == "":
             initial_date = "2006-03-21" # Beginning of Twitter
 
         if final_date == "":
             final_date = date.today().strftime("%Y-%m-%d")
 
-        filename = data_folder + "_".join(keywords) + f'_kpc_{self.max_keywords - self.n_keywords_dropped}_{initial_date}_to_{final_date}.csv' # kpc stands for keywords per clause
+        ind_syns = "with_syns" if synonyms else ""
+        filename = "_".join(keywords) + f'_kpc_{self.max_keywords - self.n_keywords_dropped}_{initial_date}_to_{final_date}_{ind_syns}.csv' # kpc stands for keywords per clause
 
-        # If file already exists, return filename
-        if os.path.exists(filename):
-            print(f"\nFile {filename} already exists.\n")
-            return filename, None
-        
-        print(f"\nRetrieving tweets from {initial_date} to {final_date}...")
-        
         async with ScraperNitter(domain_index=self.domain_index) as scraper:
             tweets_list = await scraper.get_tweets(
                 query=query, 
                 since=initial_date, 
                 until=final_date, 
-                save_csv=False,
                 excludes={"nativeretweets", "replies"}, 
-                filename=filename,
-                )
-    
-            if tweets_list:
-                print(f"\nScraping completed satisfactorily.\n")
-                tweets_list = self.predict_alignment(claim, tweets_list, filename)
-                df = pd.DataFrame(tweets_list)
+                filename=filename)
+        
+            print(f"Scraping url: {scraper._get_search_url(query, initial_date, final_date, excludes=self.excludes)}")
+        if tweets_list:
+            print(f"\nScraping completed satisfactorily. Tweets saved to {filename}.\n")
+        else:
+            print(f"\nNo tweets were found.\n")
+            return None, None
 
-                return filename, df
-            else:
-                print(f"\nNo tweets were found.\n")
-                return None, None
+        alignment_model = AlignmentModel()
+        aligned_tweets = alignment_model.batch_filter_tweets(claim, tweets_list, batch_size=self.batch_size, verbose=verbose)
+        if aligned_tweets:
+            if verbose:
+                print(f"\nAligned tweets:\n{aligned_tweets}")
+
+            oldest_aligned_tweet = alignment_model.find_first(aligned_tweets)
+            print(f"\nOldest aligned tweet:\n")
+            self.print_tweet(oldest_aligned_tweet)
+
+            return oldest_aligned_tweet, aligned_tweets
+        else:
+            print("No aligned tweets found.")
+            return None, None
         
 
-    async def find_source(self, claim, initial_date="", final_date="", step=1):
+    async def find_source(self, claim, initial_date="", final_date="", step=1, synonyms=True, 
+                          model_name="en_core_web_md", top_n_syns=5, threshold=0.1, max_syns_per_kw=2):
         """
         The workflow is similar to the method find_all but here we search in steps
         of step years, starting from the initial_date, and we stop once an aligned 
         tweet is found.
         """
-        query_generator = QueryGenerator(claim)
-        keywords = query_generator.extract_keywords(max_keywords=self.max_keywords)
-        query = query_generator.build_query(n_keywords_dropped=self.n_keywords_dropped, keywords=keywords)
+        if synonyms:
+            query_builder = SynonymQueryBuilder(
+                sentence=claim, 
+                max_keywords=self.max_keywords, 
+                model_name=model_name,
+                top_n_syns=top_n_syns,
+                threshold=threshold,
+                max_syns_per_kw=max_syns_per_kw
+            )
+            query = query_builder.run()
+        else:
+            query_generator = QueryGenerator(claim)
+            keywords = query_generator.extract_keywords(max_keywords=self.max_keywords)
+            query = query_generator.build_query(n_keywords_dropped=self.n_keywords_dropped, keywords=keywords)
+
+        print(f"\nGenerated Boolean Query:\n{query}\n")
 
         if initial_date == "":
             initial_date = "2006-03-21" # Beginning of Twitter
@@ -184,7 +197,131 @@ class SourceFinder:
                     continue
 
         print("\nNo aligned tweets were found between the dates provided\n")
-        return None, None    
+        return None, None 
+
+
+    async def find_source_high_volume(self, claim, initial_date="", final_date="", step_years=1, synonyms=True, 
+                                     model_name="en_core_web_md", top_n_syns=5, threshold=0.1, max_syns_per_kw=2):
+        """
+        Similar to find_source, but optimized for high tweet volumes.
+        For each year range (step_years), it first checks if any tweets exist.
+        If tweets exist, it retrieves tweets month by month and checks alignment.
+        Stops immediately when aligned tweets are found; otherwise moves to next year range.
+        """
+        if synonyms:
+            query_builder = SynonymQueryBuilder(
+                sentence=claim, 
+                max_keywords=self.max_keywords, 
+                model_name=model_name,
+                top_n_syns=top_n_syns,
+                threshold=threshold,
+                max_syns_per_kw=max_syns_per_kw
+            )
+            query = query_builder.run()
+        else:
+            query_generator = QueryGenerator(claim)
+            keywords = query_generator.extract_keywords(max_keywords=self.max_keywords)
+            query = query_generator.build_query(n_keywords_dropped=self.n_keywords_dropped, keywords=keywords)
+
+        print(f"\nGenerated Boolean Query:\n{query}\n")
+
+        if initial_date == "":
+            initial_date = "2006-03-21"  # Beginning of Twitter
+
+        if final_date == "":
+            final_date = date.today().strftime("%Y-%m-%d")
+
+        # Extract year from date
+        initial_year = int(initial_date[:4])
+        final_year = int(final_date[:4])
+
+        prov_initial_year = initial_year
+        prov_final_year = initial_year + step_years
+
+        alignment_model = AlignmentModel()
+
+        async with ScraperNitter(domain_index=self.domain_index) as scraper:
+            # Loop over each year range
+            while prov_final_year <= (final_year + 1):
+                prov_initial_date = str(prov_initial_year) + initial_date[4:]
+                prov_final_date = str(prov_final_year) + initial_date[4:]
+
+                print(f"\nSearching tweets from {prov_initial_date} to {prov_final_date}...")
+                filename = "_".join(keywords) + f'_kpc_{self.max_keywords - self.n_keywords_dropped}_{prov_initial_date}_to_{prov_final_date}.csv'
+
+                # Quick check — are there tweets in this range at all?
+                tweets_found = await scraper.check_tweets_exist(
+                    query=query,
+                    since=prov_initial_date,
+                    until=prov_final_date,
+                    excludes={"nativeretweets", "replies"},
+                )
+
+                if not tweets_found:
+                    print("No tweets found in this year range.")
+                    prov_initial_year += step_years
+                    prov_final_year += step_years
+                    continue
+
+                print("Tweets exist. Checking month by month...")
+
+                # Loop month by month in this year range
+                current_year = prov_initial_year
+                current_month = 1  # Start from January
+                while current_year < prov_final_year or (current_year == prov_final_year and current_month <= 12):
+                    prov_month_start = f"{current_year}-{current_month:02d}-01"
+
+                    # Calculate next month
+                    if current_month == 12:
+                        next_month = 1
+                        next_year = current_year + 1
+                    else:
+                        next_month = current_month + 1
+                        next_year = current_year
+
+                    prov_month_end = f"{next_year}-{next_month:02d}-01"
+                    print(f"  Retrieving tweets from {prov_month_start} to {prov_month_end}...")
+
+                    # Get tweets for this month
+                    month_tweets = await scraper.get_tweets(
+                        query=query,
+                        since=prov_month_start,
+                        until=prov_month_end,
+                        excludes={"nativeretweets", "replies"},
+                        save_csv=False,
+                        filename=filename
+                    )
+
+                    if not month_tweets:
+                        print("    No tweets this month.")
+                        current_year, current_month = next_year, next_month
+                        continue
+
+                    print(f"    Found {len(month_tweets)} tweets. Checking alignment...")
+
+                    # Check alignment immediately
+                    aligned_tweets = alignment_model.batch_filter_tweets(
+                        claim,
+                        month_tweets,
+                        batch_size=self.batch_size
+                    )
+
+                    if aligned_tweets:
+                        oldest_aligned_tweet = alignment_model.find_first(aligned_tweets)
+                        print("\nOldest aligned tweet found:")
+                        self.print_tweet(oldest_aligned_tweet)
+                        return oldest_aligned_tweet, aligned_tweets
+
+                    print("    No aligned tweets this month.")
+                    current_year, current_month = next_year, next_month
+
+                print("No aligned tweets found in this year range.")
+                prov_initial_year += step_years
+                prov_final_year += step_years
+
+        print("\nNo aligned tweets were found between the dates provided.\n")
+        return None, None
+       
             
 
     @staticmethod
