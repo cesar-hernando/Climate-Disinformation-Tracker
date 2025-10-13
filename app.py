@@ -79,8 +79,8 @@ async def analyze(req: AnalyzeRequest):
 # Endpoint to serve the Dash visualization app
 @app.post("/api/visualization")
 def serve_dashboard(req: VisualizationRequest):
-    dash_app = create_app(req.filename, req.claim)
     path = req.filename.split("data/", maxsplit=1)[-1].replace(".csv", "")
+    dash_app = create_app(req.filename, req.claim, requests_pathname_prefix=f"/visualization/{path}/")
     # Only mount if not already mounted
     if not any(route.path == f"/visualization/{path}/" for route in app.routes):
         app.mount(f"/visualization/{path}", WSGIMiddleware(dash_app.server))

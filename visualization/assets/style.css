@@ -8,6 +8,10 @@ h1 {
     font-family: 'Montserrat', sans-serif;
 }
 
+a {
+  text-decoration: none;
+}
+
 /* Container for the list */
 .tweet-list {
   display: flex;
@@ -26,6 +30,11 @@ h1 {
   border-radius: 8px;
   padding: 12px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.1s ease;
+}
+
+.tweet-card:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add shadow on hover */
 }
 
 /* Username + timestamp row */
@@ -41,6 +50,10 @@ h1 {
   color: #1DA1F2; /* Twitter blue */
 }
 
+.tweet-username:hover {
+  text-decoration: underline;
+}
+
 /* Timestamp styling */
 .tweet-timestamp {
   font-size: 12px;
@@ -51,6 +64,8 @@ h1 {
 .tweet-content {
   font-size: 14px;
   line-height: 1.4;
+  color: #333;
+  user-select: text;
 }
 
 .tweet-stats {
@@ -79,26 +94,65 @@ h1 {
 }
 
 .reset-button {
-    padding: 6px 12px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    background-color: #f9f9f9;
-    cursor: pointer;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 8px;
+    background-color: #1DA1F2;
+    color: white;
     font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    /* box-shadow: 0 2px 6px rgba(29, 161, 242, 0.3); */
 }
 
 .reset-button:hover {
-    background-color: #e0e0e0;
+    background-color: #0d8de1;
+    box-shadow: 0 2px 6px rgba(29, 161, 242, 0.3);
 }
 
 .alignment-filter {
-    position: fixed;          /* Stay in place even on scroll */
-    bottom: 20px;             /* Distance from bottom */
-    right: 20px;              /* Distance from right */
-    background-color: white;   /* Popup background */
-    border: 1px solid #ccc;    /* Border */
-    padding: 10px;
-    border-radius: 8px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); /* subtle shadow */
-    z-index: 9999;            /* Ensure it floats above everything */
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    padding: 12px 16px;
+    border-radius: 12px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+    z-index: 9999;
+    cursor: grab;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+}
+
+.alignment-filter:active {
+    cursor: grabbing;
+    transform: scale(0.98);
+}
+
+.alignment-filter:hover {
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.alignment-filter span {
+    font-weight: 500;
+    color: #1DA1F2;
+    font-size: 15px;
+    display: block;
+    margin-bottom: 6px;
+}
+
+.alignment-filter label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    color: #333;
+    margin-top: 4px;
+}
+
+.alignment-filter input[type="checkbox"] {
+    accent-color: #1DA1F2;
+    cursor: pointer;
 }

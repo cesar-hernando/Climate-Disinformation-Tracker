@@ -94,7 +94,7 @@ class ScraperNitter:
         page = await self.context.new_page()
         full_url = self.domain + url
         try:
-            await page.goto(full_url, timeout=60000, wait_until="networkidle")
+            await page.goto(full_url, timeout=60000, wait_until="domcontentloaded")
             html = await page.content()
             status_code = 200
         except Exception as e:
@@ -125,8 +125,8 @@ class ScraperNitter:
             tweet_data["user"] = username.text.strip() if username else ""
 
             content = tweet.find("div", class_="tweet-content")
-            content = content.text.strip().replace("\n", " ").replace(",", "&#44;") if content else ""
-            tweet_data["text"] = content if content else ""
+            content = content.text.strip().replace("\n", "\\n") if content else ""
+            tweet_data["text"] = f'"{content}"' if content else ""  # Wrap text in quotes to handle commmas in CSV
 
             timestamp = tweet.find("span", class_="tweet-date")
             tweet_data["created_at_datetime"] = ts_to_iso8601(timestamp.a["title"].strip()) if timestamp and timestamp.a else ""
@@ -136,15 +136,15 @@ class ScraperNitter:
 
             tweet_stat = tweet.find_all("span", class_="tweet-stat")
             if len(tweet_stat) < 4:
-                tweet_data["comments"] = "0"
-                tweet_data["retweets"] = "0"
-                tweet_data["quotes"] = "0"
-                tweet_data["likes"] = "0"
+                tweet_data["comments"] = 0
+                tweet_data["retweets"] = 0
+                tweet_data["quotes"] = 0
+                tweet_data["likes"] = 0
             else:
-                tweet_data["comments"] = tweet_stat[0].div.text.strip() if tweet_stat[0].div.text.strip() else "0"
-                tweet_data["retweets"] = tweet_stat[1].div.text.strip() if tweet_stat[1].div.text.strip() else "0"
-                tweet_data["quotes"] = tweet_stat[2].div.text.strip() if tweet_stat[2].div.text.strip() else "0"
-                tweet_data["likes"] = tweet_stat[3].div.text.strip() if tweet_stat[3].div.text.strip() else "0"
+                tweet_data["comments"] = int(tweet_stat[0].div.text.strip().replace(",", "")) if tweet_stat[0].div.text.strip() else 0
+                tweet_data["retweets"] = int(tweet_stat[1].div.text.strip().replace(",", "")) if tweet_stat[1].div.text.strip() else 0
+                tweet_data["quotes"] = int(tweet_stat[2].div.text.strip().replace(",", "")) if tweet_stat[2].div.text.strip() else 0
+                tweet_data["likes"] = int(tweet_stat[3].div.text.strip().replace(",", "")) if tweet_stat[3].div.text.strip() else 0
 
             tweets.append(tweet_data)
 
@@ -213,7 +213,7 @@ class ScraperNitter:
     async def check_tweets_exist(self, query, since="", until="", near="", filters={}, excludes={}):
         """Check if there are any tweets matching the search query and parameters."""
 
-        url = self.__get_search_url(query, since, until, near, filters, excludes)
+        url = self._get_search_url(query, since, until, near, filters, excludes)
         html_content, status_code = await self.__fetch_tweets(url)
 
         if status_code == 200:
@@ -256,7 +256,7 @@ if __name__ == "__main__":
     async def main():
         claim = "the Earth has always warmed and cooled"
         initial_date = "2023-01-01"
-        final_date = "2023-12-31"
+        final_date = "2025-10-01"
         filename = f'test_Earth_warmed_cooled_{initial_date}_to_{final_date}.csv'
 
         async with ScraperNitter() as scraper:

@@ -20,6 +20,8 @@ import time
 from datetime import date
 from collections import Counter
 import asyncio
+import os
+import pandas as pd
 
 from scrapper_nitter import ScraperNitter
 from query_generator import QueryGenerator
@@ -53,10 +55,32 @@ class SourceFinder:
             else:
                 print(f"{field_name}: {value}")
         print("-" * separator)
+
+    def predict_alignment(self, claim, tweets_list, filename):
+        """
+        Saves the tweets along with their alignment to a CSV file.
+        """
+        alignment_model = AlignmentModel()
+        print(f"Predicting alignment for {len(tweets_list)} tweets...")
+        alignment_list = alignment_model.batch_predict(claim, tweets_list, batch_size=self.batch_size)
+
+        if not tweets_list or not alignment_list or len(tweets_list) != len(alignment_list):
+            print("No tweets or alignment data to save, or lengths do not match.")
+            return
+
+        # Add alignment to each tweet
+        for tweet, alignment in zip(tweets_list, alignment_list):
+            tweet['alignment'] = alignment
+
+        df = pd.DataFrame(tweets_list)
+        df.to_csv(filename, index=False, encoding='utf-8')
+
+        print(f"Tweets with alignment saved to {filename}.")
+        return df    
     
 
-    async def find_all(self, claim, initial_date="", final_date="", verbose=False, synonyms=True, 
-                       model_name="en_core_web_md", top_n_syns=5, threshold=0.1, max_syns_per_kw=2):
+    async def find_all(self, claim, initial_date="", final_date="", verbose=False, synonyms=False, 
+                       model_name="en_core_web_md", top_n_syns=5, threshold=0.1, max_syns_per_kw=2, data_dir="data/"):
         """
         Transforms a claim into a query for advanced search, retrieves tweets using Nitter, selects the
         tweets that align with the original claim, and obtains the oldest.
@@ -86,37 +110,32 @@ class SourceFinder:
             final_date = date.today().strftime("%Y-%m-%d")
 
         ind_syns = "with_syns" if synonyms else ""
-        filename = "_".join(keywords) + f'_kpc_{self.max_keywords - self.n_keywords_dropped}_{initial_date}_to_{final_date}_{ind_syns}.csv' # kpc stands for keywords per clause
+        filename = data_dir + "_".join(keywords) + f'_kpc_{self.max_keywords - self.n_keywords_dropped}_{initial_date}_to_{final_date}_{ind_syns}.csv' # kpc stands for keywords per clause
 
+        if os.path.exists(filename):
+            print(f"\nFile {filename} already exists.\n")
+            return filename, None
+        
         async with ScraperNitter(domain_index=self.domain_index) as scraper:
+            print(f"Scraping url: {scraper._get_search_url(query, initial_date, final_date, excludes=self.excludes)}")
             tweets_list = await scraper.get_tweets(
                 query=query, 
                 since=initial_date, 
                 until=final_date, 
-                excludes={"nativeretweets", "replies"}, 
+                save_csv=False,
+                excludes=self.excludes, 
+                verbose=verbose,
                 filename=filename)
         
-            print(f"Scraping url: {scraper._get_search_url(query, initial_date, final_date, excludes=self.excludes)}")
-        if tweets_list:
-            print(f"\nScraping completed satisfactorily. Tweets saved to {filename}.\n")
-        else:
-            print(f"\nNo tweets were found.\n")
-            return None, None
+            if tweets_list:
+                print(f"\nScraping completed. Found {len(tweets_list)} tweets.\n")
+                tweets_list = self.predict_alignment(claim, tweets_list, filename)
+                df = pd.DataFrame(tweets_list)
 
-        alignment_model = AlignmentModel()
-        aligned_tweets = alignment_model.batch_filter_tweets(claim, tweets_list, batch_size=self.batch_size, verbose=verbose)
-        if aligned_tweets:
-            if verbose:
-                print(f"\nAligned tweets:\n{aligned_tweets}")
-
-            oldest_aligned_tweet = alignment_model.find_first(aligned_tweets)
-            print(f"\nOldest aligned tweet:\n")
-            self.print_tweet(oldest_aligned_tweet)
-
-            return oldest_aligned_tweet, aligned_tweets
-        else:
-            print("No aligned tweets found.")
-            return None, None
+                return filename, df
+            else:
+                print(f"\nNo tweets were found.\n")
+                return None, None
         
 
     async def find_source(self, claim, initial_date="", final_date="", step=1, synonyms=True, 
@@ -171,7 +190,7 @@ class SourceFinder:
                     query=query, 
                     since=prov_initial_date, 
                     until=prov_final_date, 
-                    excludes={"nativeretweets", "replies"},
+                    excludes=self.excludes,
                     save_csv=False, 
                     filename=filename)
                 
@@ -254,7 +273,7 @@ class SourceFinder:
                     query=query,
                     since=prov_initial_date,
                     until=prov_final_date,
-                    excludes={"nativeretweets", "replies"},
+                    excludes=self.excludes,
                 )
 
                 if not tweets_found:
@@ -287,7 +306,7 @@ class SourceFinder:
                         query=query,
                         since=prov_month_start,
                         until=prov_month_end,
-                        excludes={"nativeretweets", "replies"},
+                        excludes=self.excludes,
                         save_csv=False,
                         filename=filename
                     )
@@ -364,14 +383,14 @@ if __name__ == "__main__":
 
     async def main():
         # Define the parameters of the search
-        claim = "The earth was hotter in the past, the medieval warm piored. Why is Greenland called Greenland?.the last ice age Co2 was high."
+        claim = "Climate change is just caused by natural cycles of the sun"
         max_keywords = 5 # Maximum number of keywords extracted
-        n_keywords_dropped = 0 # No advanced search if n=0 (# of keywords - n = number of words in each clause)
+        n_keywords_dropped = 1 # No advanced search if n=0 (# of keywords - n = number of words in each clause)
         excludes={"nativeretweets", "replies"}
         batch_size = 4 
         top_n_tweeters = 3 # Top usernames with more tweets about a topic
 
-        mode = 0 # 0 (find source) or 1 (retrieve all)
+        mode = 1 # 0 (find source) or 1 (retrieve all)
 
         start_time = time.time()
         source_finder = SourceFinder(max_keywords=max_keywords, 
@@ -387,11 +406,9 @@ if __name__ == "__main__":
         
         else: 
             initial_date = ""
-            final_date = ""
-            oldest_aligned_tweet, aligned_tweets = await source_finder.find_all(claim, initial_date, final_date)
-            if aligned_tweets:
-                top_tweeters = source_finder.get_top_tweeters(aligned_tweets=aligned_tweets, top_n_tweeters=top_n_tweeters)
-
+            final_date = "2025-10-08"
+            filename, tweet_list = await source_finder.find_all(claim, initial_date, final_date)
+            print(f"{len(tweet_list)} Tweets saved in {filename}")
         end_time = time.time()
         run_time = end_time - start_time
         print(f"\nExecution time of the Source Finder: {run_time:.2f} s\n")
