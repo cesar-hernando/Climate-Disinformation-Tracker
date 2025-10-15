@@ -39,6 +39,29 @@
       <div class="advanced-settings">
         <button type="button" id="toggleAdvanced" class="toggle-btn">⚙️ Advanced Settings</button>
         <div id="advancedContent" class="advanced-content" hidden>
+          <!-- Synonym Options -->
+          <label for="use-synonyms">
+            <input type="checkbox" id="use-synonyms" name="synonyms"> Use Synonyms
+          </label>
+
+          <div id="synonym-options" style="display: none; margin-left: 1em;">
+            <label for="model_name">Model:</label>
+            <select id="model_name" name="model_name">
+              <option value="en_core_web_md" selected>en_core_web_md</option>
+              <option value="en_core_web_lg">en_core_web_lg</option>
+            </select>
+
+            <label for="top_n_syns">Top N Synonyms:</label>
+            <input type="number" id="top_n_syns" name="top_n_syns" value="4" min="1" max="10">
+
+            <label for="threshold">Similarity Threshold:</label>
+            <input type="number" id="threshold" name="threshold" value="0.1" step="0.05" min="0" max="1">
+
+            <label for="max_syns_per_kw">Max Synonyms per Keyword:</label>
+            <input type="number" id="max_syns_per_kw" name="max_syns_per_kw" value="2" min="1" max="10">
+          </div>
+
+
           <label for="domain_index">Domain</label>
           <select id="domain_index" name="domain_index">
             <option value="0">https://xcancel.com</option>
@@ -91,6 +114,11 @@
       document.getElementById('advancedContent').classList.toggle('show');
     });
 
+    // Toggle synonym settings visibility
+    document.getElementById('use-synonyms').addEventListener('change', (e) => {
+      document.getElementById('synonym-options').style.display = e.target.checked ? 'block' : 'none';
+    });
+
     document.getElementById('detectForm').addEventListener('submit', async function(e) {
       e.preventDefault();
 
@@ -108,6 +136,12 @@
         document.querySelectorAll('#excludes input[type="checkbox"]:checked')
       ).map(cb => cb.value);
 
+      // Synonyms
+      const synonyms = document.getElementById('use-synonyms').checked;
+      const model_name = document.getElementById('model_name').value;
+      const top_n_syns = parseInt(document.getElementById('top_n_syns').value);
+      const threshold = parseFloat(document.getElementById('threshold').value);
+      const max_syns_per_kw = parseInt(document.getElementById('max_syns_per_kw').value);
 
       // disable button during request
       analyzeBtn.disabled = true;
@@ -127,7 +161,12 @@
               domain_index: domain_index,
               max_keywords: max_keywords,
               n_keywords_dropped: n_keywords_dropped,
-              excludes: excludes
+              excludes: excludes,
+              synonyms: synonyms,
+              model_name: model_name,
+              top_n_syns: top_n_syns,
+              threshold: threshold,
+              max_syns_per_kw: max_syns_per_kw
             })
         });
 

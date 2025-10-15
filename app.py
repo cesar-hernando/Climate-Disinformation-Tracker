@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from fastapi.staticfiles import StaticFiles
 import pandas as pd
 from visualization.app import create_app
+from typing import List, Set, Optional
 
 # Import backend pipeline
 from source_finder_nitter import SourceFinder
@@ -33,6 +34,13 @@ class AnalyzeRequest(BaseModel):
     n_keywords_dropped: int = 1 # No advanced search if n_keywords_dropped = 0
     excludes: set = {"nativeretweets", "replies"}
 
+    # Synonym-related parameters
+    synonyms: bool = False
+    model_name: Optional[str] = "en_core_web_md"
+    top_n_syns: Optional[int] = 4
+    threshold: Optional[float] = 0.1
+    max_syns_per_kw: Optional[int] = 2
+
 # Request schema for visualization
 class VisualizationRequest(BaseModel):
     filename: str
@@ -46,10 +54,10 @@ async def analyze(req: AnalyzeRequest):
     try:
         # Initialize SourceFinder with request parameters
         source_finder = SourceFinder(
-            domain_index=req.domain_index, 
+            domain_index=req.domain_index,
             max_keywords=req.max_keywords,
             n_keywords_dropped=req.n_keywords_dropped,
-            excludes=req.excludes
+            excludes=req.excludes,
         )
 
         if req.mode == "find_source":
@@ -57,12 +65,22 @@ async def analyze(req: AnalyzeRequest):
                 claim=req.text,
                 initial_date=req.initial_date,
                 final_date=req.final_date,
+                synonyms=req.synonyms,
+                model_name=req.model_name,
+                top_n_syns=req.top_n_syns,
+                threshold=req.threshold,
+                max_syns_per_kw=req.max_syns_per_kw
             )
         elif req.mode == "find_all":
             file_name, tweet_list = await source_finder.find_all(
                 claim=req.text,
                 initial_date=req.initial_date,
                 final_date=req.final_date,
+                synonyms=req.synonyms,
+                model_name=req.model_name,
+                top_n_syns=req.top_n_syns,
+                threshold=req.threshold,
+                max_syns_per_kw=req.max_syns_per_kw
             )
             if file_name is not None:
                 return file_name

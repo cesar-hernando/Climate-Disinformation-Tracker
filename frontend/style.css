@@ -175,6 +175,24 @@ select:focus {
   transform: scale(1.1);
 }
 
+/* Synonym options */
+#synonym-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  background: #f8f9fa;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+#synonym-options label {
+  font-size: 0.9em;
+  display: flex;
+  flex-direction: column;
+}
+
+
 
 /* Collapsible content */
 .advanced-content {
