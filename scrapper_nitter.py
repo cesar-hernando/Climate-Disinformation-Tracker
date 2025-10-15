@@ -74,9 +74,9 @@ class ScraperNitter:
             if s in filters:
                 selected += f"&f-{s}=on"
             if s in excludes:
-                selected += f"&e-{s}=off"
+                selected += f"&e-{s}=on" # changed from off to on after seeing how nitter does it
 
-        base_url = "/search?f=tweets&q={query}&since={since}&until={until}&near={near}{selected}"
+        base_url = "/search?f=tweets&q={query}{selected}&since={since}&until={until}&near={near}" # changed order
 
         # URL encode parameters
         query = quote_plus(query)

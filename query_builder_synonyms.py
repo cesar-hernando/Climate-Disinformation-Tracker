@@ -73,9 +73,9 @@ class SynonymQueryBuilder:
             or_groups = []
             for kw, syns in user_choices.items():
                 if not syns:
-                    or_groups.append(f"({kw})")
+                    or_groups.append(f"{kw}")
                 elif len(syns) == 1:
-                    or_groups.append(f"({syns[0]})")
+                    or_groups.append(f"{syns[0]}")
                 else:
                     joined = " OR ".join(syns)
                     or_groups.append(f"({joined})")

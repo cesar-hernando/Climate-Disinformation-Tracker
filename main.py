@@ -6,6 +6,7 @@ Main script to run the Source Finder using Nitter as the data source.
 import os, logging
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
+from datetime import date
 import time
 import asyncio
 from source_finder_nitter import SourceFinder
@@ -39,7 +40,7 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 async def main():
     # Define the parameters of the search
-    claim = "Climate change is just a natural cycle - the Earth has always warmed and cooled"
+    claim = "Electric vehicles are actually worse for environment than gas cars"
     domain_index = 5 # Index of the Nitter domain to use, change if one domain is down
     max_keywords = 5 # Maximum number of keywords extracted
     synonyms = True # Whether to use synonyms or not
@@ -62,8 +63,8 @@ async def main():
                                 excludes=excludes)
 
     if mode == 0:
-        initial_date = "2007-01-01"
-        final_date = "2025-01-01"
+        initial_date = "2006-03-21"
+        final_date = date.today().strftime("%Y-%m-%d")
         step = 1
         by_month = False # True or False
         if by_month:

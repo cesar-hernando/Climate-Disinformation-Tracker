@@ -216,6 +216,28 @@ class SourceFinder:
                     prov_initial_year += step
                     prov_final_year += step
                     continue
+            
+            # Fallback to work around Nitter's dates bug 
+            print("\nTrying one last time without specifying dates and then filtering (Nitter bug)...")
+            print(f"Scraping url: {scraper.domain + scraper._get_search_url(query, excludes=self.excludes)}")
+            tweets_list = await scraper.get_tweets(
+                    query=query,  
+                    excludes=self.excludes,
+                    save_csv=False, 
+                    verbose=False)
+            tweets_list = [tweet for tweet in tweets_list if tweet['created_at_datetime'] >= initial_date and tweet['created_at_datetime'] <= final_date]
+            
+            if tweets_list:
+                print(f"{len(tweets_list)} tweets were found.")
+            else:
+                print(f"No tweets were found.")
+                return None, None
+            aligned_tweets = alignment_model.batch_filter_tweets(claim, tweets_list, batch_size=self.batch_size)
+            if aligned_tweets:
+                    oldest_aligned_tweet = alignment_model.find_first(aligned_tweets)
+                    print("\nOldest aligned tweet:")
+                    self.print_tweet(oldest_aligned_tweet)
+                    return oldest_aligned_tweet, aligned_tweets
 
         print("\nNo aligned tweets were found between the dates provided\n")
         return None, None 
