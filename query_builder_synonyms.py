@@ -4,14 +4,14 @@ from itertools import combinations, product
 
 class SynonymQueryBuilder:
     def __init__(self, sentence, max_keywords=5, n_keywords_dropped=1, model_name="en_core_web_md",
-                 top_n_syns=3, threshold=0.1, max_syns_per_kw=2):
+                 top_n_syns=3, threshold=0.1, max_syns_per_kw=2, keywords=[]):
         self.sentence = sentence
         self.n_keywords_dropped = n_keywords_dropped
         self.model_name = model_name
         self.top_n_syns = top_n_syns
         self.threshold = threshold
         self.max_syns_per_kw = max_syns_per_kw
-        self.keywords = self.extract_keywords(max_keywords)
+        self.keywords = self.extract_keywords(max_keywords) if not keywords else keywords
         self.synonyms = {}
         
 
@@ -28,11 +28,12 @@ class SynonymQueryBuilder:
         synonym_finder = Synonyms(model_name=self.model_name)
         for kw in self.keywords:
             self.synonyms[kw] = synonym_finder.find_contextual(
-                word=kw, 
-                sentence=self.sentence, 
-                top_n=top_n_syns, 
-                threshold=threshold
+                word=kw,
+                sentence=self.sentence,
+                top_n=self.top_n_syns,
+                threshold=self.threshold
             )
+        return self.synonyms
 
 
     def interactive_selection(self, max_syns_per_kw=2):

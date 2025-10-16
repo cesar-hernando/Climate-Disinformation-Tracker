@@ -81,6 +81,7 @@ async def main():
                 top_n_syns=top_n_syns,
                 threshold=threshold,
                 max_syns_per_kw=max_syns_per_kw,
+                dev_mode=True,
             )
         else:
             oldest_aligned_tweet, _ = await source_finder.find_source(
@@ -93,6 +94,7 @@ async def main():
                 top_n_syns=top_n_syns,
                 threshold=threshold,
                 max_syns_per_kw=max_syns_per_kw,
+                dev_mode=True,
             )
         end_time = time.time()
         run_time = end_time - start_time
@@ -110,6 +112,7 @@ async def main():
             top_n_syns=top_n_syns,
             threshold=threshold,
             max_syns_per_kw=max_syns_per_kw,
+            dev_mode=True,
         )
 
         end_time = time.time()

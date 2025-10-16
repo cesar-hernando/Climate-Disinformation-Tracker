@@ -17,28 +17,48 @@
           <label for="initialDate">Initial Date:</label>
           <input type="date" id="initialDate" name="initialDate">
         </div>
-        
         <div>
           <label for="finalDate">Final Date:</label>
           <input type="date" id="finalDate" name="finalDate">
         </div>
       </div>
 
-      <div  class="mode-selection">
+      <div class="mode-selection">
         <div>
           <input type="radio" id="find_source" name="mode" value="find_source" checked>
           <label for="find_source">Find Source</label>
         </div>
-        
         <div>
           <input type="radio" id="find_all" name="mode" value="find_all">
           <label for="find_all">Find All</label>
         </div>
       </div>
-  
+
       <div class="advanced-settings">
         <button type="button" id="toggleAdvanced" class="toggle-btn">⚙️ Advanced Settings</button>
         <div id="advancedContent" class="advanced-content" hidden>
+          <!-- Synonym Options -->
+          <label for="use-synonyms">
+            <input type="checkbox" id="use-synonyms" name="synonyms"> Use Synonyms
+          </label>
+
+          <div id="synonym-options" style="display: none;">
+            <label for="model_name">Model:</label>
+            <select id="model_name" name="model_name">
+              <option value="en_core_web_md" selected>en_core_web_md</option>
+              <option value="en_core_web_lg">en_core_web_lg</option>
+            </select>
+
+            <label for="top_n_syns">Top N Synonyms:</label>
+            <input type="number" id="top_n_syns" name="top_n_syns" value="4" min="1" max="10">
+
+            <label for="threshold">Similarity Threshold:</label>
+            <input type="number" id="threshold" name="threshold" value="0.1" step="0.05" min="0" max="1">
+
+            <label for="max_syns_per_kw">Max Synonyms per Keyword:</label>
+            <input type="number" id="max_syns_per_kw" name="max_syns_per_kw" value="2" min="1" max="10">
+          </div>
+
           <label for="domain_index">Domain</label>
           <select id="domain_index" name="domain_index">
             <option value="0">https://xcancel.com</option>
@@ -73,12 +93,19 @@
             <label><input type="checkbox" value="quote"> quote</label>
             <label><input type="checkbox" value="pro_video"> pro_video</label>
           </div>
-
         </div>
       </div>
-      
+
       <button type="submit" id="analyzeBtn">Analyze</button>
     </form>
+
+    <!-- Synonym selection section -->
+    <div id="synonymSection" style="display:none; margin-top: 20px;">
+      <h3>Select Synonyms</h3>
+      <div id="synonymList"></div>
+      <button id="continueBtn">Continue</button>
+    </div>
+
     <div id="result" style="display: none;"></div>
   </div>
 
@@ -91,11 +118,20 @@
       document.getElementById('advancedContent').classList.toggle('show');
     });
 
+    // Toggle synonym settings visibility
+    document.getElementById('use-synonyms').addEventListener('change', (e) => {
+      document.getElementById('synonym-options').style.display = e.target.checked ? 'block' : 'none';
+    });
+
+    let cachedParams = {};
+    let cachedSynonyms = {};
+    let cachedKeywords = null;
+
     document.getElementById('detectForm').addEventListener('submit', async function(e) {
       e.preventDefault();
-
-      // Toggle results
-      document.getElementById('result').style.display = 'flex';
+      resultDiv.style.display = 'flex';
+      resultDiv.innerHTML = '<div class="spinner"></div> Analyzing...';
+      analyzeBtn.disabled = true;
 
       const text = document.getElementById('textInput').value;
       const initialDate = document.getElementById('initialDate').value || "";
@@ -108,80 +144,111 @@
         document.querySelectorAll('#excludes input[type="checkbox"]:checked')
       ).map(cb => cb.value);
 
+      const synonyms = document.getElementById('use-synonyms').checked;
+      const model_name = document.getElementById('model_name').value;
+      const top_n_syns = parseInt(document.getElementById('top_n_syns').value);
+      const threshold = parseFloat(document.getElementById('threshold').value);
+      const max_syns_per_kw = parseInt(document.getElementById('max_syns_per_kw').value);
 
-      // disable button during request
-      analyzeBtn.disabled = true;
-
-      // show spinner + text
-      resultDiv.innerHTML = '<div class="spinner"></div> Analyzing...';
+      cachedParams = { text, initialDate, finalDate, mode, domain_index, max_keywords, n_keywords_dropped, excludes, synonyms };
 
       try {
-        const response = await fetch('http://127.0.0.1:8000/api/analyze', {
+        if (synonyms) {
+          // Step 1: Get synonym suggestions
+          const res = await fetch('http://127.0.0.1:8000/api/synonyms', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              text,
-              initial_date: initialDate, 
-              final_date: finalDate,
-              mode: mode,
-              domain_index: domain_index,
-              max_keywords: max_keywords,
-              n_keywords_dropped: n_keywords_dropped,
-              excludes: excludes
-            })
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-
-          if (data) {
-            // build HTML card for result
-            if (mode === 'find_source') {
-              resultDiv.innerHTML = `
-                <div class="result-card">
-                  <p><strong>User:</strong> ${data.user}</p>
-                  <p><strong>Text:</strong> ${data.text}</p>
-                  <p><strong>Date:</strong> ${new Date(data.created_at_datetime).toLocaleString()}</p>
-                  <p><strong>Engagement:</strong> 👍 ${data.likes} | 🔁 ${data.retweets} | 💬 ${data.comments} | 🔗 ${data.quotes}</p>
-                  <p><a href="https://twitter.com${data.link}" target="_blank">View on Twitter</a></p>
-                </div>
-              `;
-            } else if (mode === 'find_all') {
-              const filename = data; // The filename containing the data to visualize returned by the API
-              const dashboardResponse = await fetch('/api/visualization', {
-                  method: 'POST',
-                  headers: {
-                      'Content-Type': 'application/json'
-                  },
-                  body: JSON.stringify({
-                      filename: filename,
-                      claim: text
-                  })
-              });
-              if (dashboardResponse.ok) {
-                const dashboardData = await dashboardResponse.json();
-                if (dashboardData.redirect_url) {
-                  // Redirect browser to the new dashboard
-                  resultDiv.innerHTML = '<div class="spinner"></div> Launching dashboard... Redirecting now.';
-                  window.location.href = dashboardData.redirect_url;
-                }
-              } else {
-                resultDiv.textContent = 'Error launching dashboard.';
-              }
-            }
-            
-          } else {
-            resultDiv.textContent = 'No result returned.';
-          }
+            body: JSON.stringify({ text, model_name, top_n_syns, threshold })
+          });
+          const data = await res.json();
+          cachedSynonyms = data.synonyms;
+          cachedKeywords = data.keywords
+          displaySynonymOptions(cachedSynonyms);
         } else {
-          resultDiv.textContent = 'Error analyzing text.';
+          // Normal pipeline
+          await performAnalysis(cachedParams);
         }
       } catch (err) {
         resultDiv.textContent = 'Network error.';
-      } finally {
-        analyzeBtn.disabled = false; // re-enable button
-      }
+      } 
     });
+
+    function displaySynonymOptions(synonyms) {
+      const section = document.getElementById('synonymSection');
+      const list = document.getElementById('synonymList');
+      section.style.display = 'block';
+      resultDiv.style.display = 'none';
+      list.innerHTML = '';
+
+      for (const [kw, syns] of Object.entries(synonyms)) {
+        const div = document.createElement('div');
+        div.classList.add('keyword-block');
+        div.innerHTML = `
+          <label>${kw}</label>
+          <div class="synonyms">
+            ${syns.map(s => `
+              <label>
+                <input type="checkbox" name="${kw}" value="${s}"> ${s}
+              </label>
+            `).join('')}
+            ${syns.length === 0 ? '<em>No synonyms found</em>' : ''}
+          </div>
+        `;
+        list.appendChild(div);
+      }
+    }
+
+    document.getElementById('continueBtn').addEventListener('click', async () => {
+      const selections = {};
+      document.querySelectorAll('.keyword-block').forEach(block => {
+        const keyword = block.querySelector('label').textContent;
+        const checked = [...block.querySelectorAll('input[type="checkbox"]:checked')].map(i => i.value);
+        selections[keyword] = [keyword, ...checked];
+      });
+      cachedParams["selected_synonyms"] = selections;
+      cachedParams["keywords"] = cachedKeywords;
+      document.getElementById('synonymSection').style.display = 'none';
+      await performAnalysis(cachedParams);
+    });
+
+    async function performAnalysis(params) {
+      resultDiv.style.display = 'flex';
+      resultDiv.innerHTML = '<div class="spinner"></div> Running analysis...';
+
+      const response = await fetch('http://127.0.0.1:8000/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params)
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (params.mode === 'find_source') {
+          resultDiv.innerHTML = `
+            <div class="result-card">
+              <p><strong>User:</strong> ${data.user}</p>
+              <p><strong>Text:</strong> ${data.text}</p>
+              <p><strong>Date:</strong> ${new Date(data.created_at_datetime).toLocaleString()}</p>
+              <p><strong>Engagement:</strong> 👍 ${data.likes} | 🔁 ${data.retweets} | 💬 ${data.comments} | 🔗 ${data.quotes}</p>
+              <p><a href="https://twitter.com${data.link}" target="_blank">View on Twitter</a></p>
+            </div>
+          `;
+          analyzeBtn.disabled = false;
+        } else if (params.mode === 'find_all') {
+          const dashboardResponse = await fetch('/api/visualization', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ filename: data, claim: params.text })
+          });
+          const dashboardData = await dashboardResponse.json();
+          if (dashboardData.redirect_url) {
+            window.location.href = dashboardData.redirect_url;
+          }
+        }
+      } else {
+        resultDiv.textContent = 'Error analyzing text.';
+      }
+    }
   </script>
 </body>
 </html>

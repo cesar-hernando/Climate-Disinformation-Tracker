@@ -28,7 +28,6 @@ from query_generator import QueryGenerator
 from alignment import AlignmentModel
 from query_builder_synonyms import SynonymQueryBuilder
 
-
 class SourceFinder:
     def __init__(self, max_keywords=5, n_keywords_dropped=2, excludes={"nativeretweets", "replies"}, batch_size=4):
         self.max_keywords = max_keywords # Maximum number of keywords extracted by KeyBert
@@ -78,8 +77,8 @@ class SourceFinder:
         return df    
     
 
-    async def find_all(self, claim, initial_date="", final_date="", verbose=False, synonyms=False, 
-                       model_name="en_core_web_md", top_n_syns=5, threshold=0.1, max_syns_per_kw=2, data_dir="data/"):
+    async def find_all(self, claim, initial_date="", final_date="", verbose=False, synonyms=False, dev_mode=False, keywords=None,
+                       model_name="en_core_web_md", top_n_syns=5, threshold=0.1, max_syns_per_kw=2, data_dir="data/", user_choices=None):
         """
         Transforms a claim into a query for advanced search, retrieves tweets using Nitter, selects the
         tweets that align with the original claim, and obtains the oldest.
@@ -92,10 +91,16 @@ class SourceFinder:
                 model_name=model_name,
                 top_n_syns=top_n_syns,
                 threshold=threshold,
-                max_syns_per_kw=max_syns_per_kw
+                max_syns_per_kw=max_syns_per_kw,
+                keywords=keywords
             )
-            keywords = query_builder.keywords
-            query = query_builder.run()
+
+            # TODO: introduce dev_mode and explain below
+            if dev_mode:
+                keywords = query_builder.keywords
+                query = query_builder.run()
+            else:
+                query = query_builder.build_boolean_query(user_choices)
         else:
             query_generator = QueryGenerator(claim)
             keywords = query_generator.extract_keywords(max_keywords=self.max_keywords)
@@ -114,7 +119,7 @@ class SourceFinder:
 
         if os.path.exists(filename):
             print(f"\nFile {filename} already exists.\n")
-            return filename, None
+            return filename, None   
         
         async with ScraperNitter() as scraper:
             tweets_list = await scraper.get_tweets(
@@ -137,8 +142,8 @@ class SourceFinder:
                 return None, None
         
 
-    async def find_source(self, claim, initial_date="", final_date="", step=1, synonyms=False, 
-                          model_name="en_core_web_md", top_n_syns=5, threshold=0.1, max_syns_per_kw=2):
+    async def find_source(self, claim, initial_date="", final_date="", step=1, synonyms=False, dev_mode=False, keywords=None,
+                          model_name="en_core_web_md", top_n_syns=5, threshold=0.1, max_syns_per_kw=2, user_choices=None):
         """
         The workflow is similar to the method find_all but here we search in steps
         of step years, starting from the initial_date, and we stop once an aligned 
@@ -152,10 +157,16 @@ class SourceFinder:
                 model_name=model_name,
                 top_n_syns=top_n_syns,
                 threshold=threshold,
-                max_syns_per_kw=max_syns_per_kw
+                max_syns_per_kw=max_syns_per_kw,
+                keywords=keywords
             )
-            keywords = query_builder.keywords
-            query = query_builder.run()
+
+            # TODO: introduce DEV_MODE and explain below
+            if dev_mode:
+                keywords = query_builder.keywords
+                query = query_builder.run()
+            else:
+                query = query_builder.build_boolean_query(user_choices)
         else:
             query_generator = QueryGenerator(claim)
             keywords = query_generator.extract_keywords(max_keywords=self.max_keywords)
@@ -241,8 +252,8 @@ class SourceFinder:
         return None, None 
 
 
-    async def find_source_high_volume(self, claim, initial_date="", final_date="", step_years=1, synonyms=True, 
-                                     model_name="en_core_web_md", top_n_syns=5, threshold=0.1, max_syns_per_kw=2):
+    async def find_source_high_volume(self, claim, initial_date="", final_date="", step_years=1, synonyms=True, dev_mode=False,
+                                     model_name="en_core_web_md", top_n_syns=5, threshold=0.1, max_syns_per_kw=2, user_choices=None):
         """
         Similar to find_source, but optimized for high tweet volumes.
         For each year range (step_years), it first checks if any tweets exist.
@@ -259,6 +270,7 @@ class SourceFinder:
                 threshold=threshold,
                 max_syns_per_kw=max_syns_per_kw
             )
+
             query = query_builder.run()
         else:
             query_generator = QueryGenerator(claim)
