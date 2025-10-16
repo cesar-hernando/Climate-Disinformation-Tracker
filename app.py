@@ -31,7 +31,6 @@ class AnalyzeRequest(BaseModel):
     final_date: str = ""    
     max_keywords: int = 5
     max_tweets: int = 200
-    domain_index: int = 5 # Index of the Nitter domain to use, change if one domain is down
     n_keywords_dropped: int = 1 # No advanced search if n_keywords_dropped = 0
     excludes: set = {"nativeretweets", "replies"}
 
@@ -59,7 +58,6 @@ async def analyze(req: AnalyzeRequest):
     try:
         # Initialize SourceFinder with request parameters
         source_finder = SourceFinder(
-            domain_index=req.domain_index,
             max_keywords=req.max_keywords,
             n_keywords_dropped=req.n_keywords_dropped,
             excludes=req.excludes,

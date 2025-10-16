@@ -26,7 +26,7 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 ################# PARAMETERS #####################
 ##################################################
 
-domain_index = 5                          # Index of the Nitter domain to use, change if one domain is down
+# domain_index = 5                          # Index of the Nitter domain to use, change if one domain is down
 max_keywords = 5                          # Maximum number of keywords extracted
 n_keywords_dropped = 1                    # No advanced search if n_keywords_dropped = 0
 excludes = {"nativeretweets", "replies"}  # Filters to exclude from search
@@ -47,7 +47,6 @@ async def process_claim(claim, writer):
     start_time = time.time()
 
     source_finder = SourceFinder(
-        domain_index=domain_index,
         max_keywords=max_keywords,
         n_keywords_dropped=n_keywords_dropped,
         excludes=excludes,

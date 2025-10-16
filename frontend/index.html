@@ -59,19 +59,6 @@
             <input type="number" id="max_syns_per_kw" name="max_syns_per_kw" value="2" min="1" max="10">
           </div>
 
-          <label for="domain_index">Domain</label>
-          <select id="domain_index" name="domain_index">
-            <option value="0">https://xcancel.com</option>
-            <option value="1">https://nitter.poast.org</option>
-            <option value="2">https://nitter.privacyredirect.com</option>
-            <option value="3">https://lightbrd.com</option>
-            <option value="4">https://nitter.space</option>
-            <option value="5" selected>https://nitter.tiekoetter.com</option>
-            <option value="6">https://nuku.trabun.org</option>
-            <option value="7">https://nitter.kuuro.net</option>
-            <option value="8">https://worldcorrespondents.com</option>
-          </select>
-
           <label for="max_keywords">Max Keywords</label>
           <input type="text" id="max_keywords" name="max_keywords" value="5">
 
@@ -137,7 +124,6 @@
       const initialDate = document.getElementById('initialDate').value || "";
       const finalDate = document.getElementById('finalDate').value || "";
       const mode = document.querySelector('input[name="mode"]:checked').value;
-      const domain_index = parseInt(document.getElementById('domain_index').value) || 5;
       const max_keywords = parseInt(document.getElementById('max_keywords').value) || 5;
       const n_keywords_dropped = parseInt(document.getElementById('n_keywords_dropped').value) || 1;
       const excludes = Array.from(
@@ -150,7 +136,7 @@
       const threshold = parseFloat(document.getElementById('threshold').value);
       const max_syns_per_kw = parseInt(document.getElementById('max_syns_per_kw').value);
 
-      cachedParams = { text, initialDate, finalDate, mode, domain_index, max_keywords, n_keywords_dropped, excludes, synonyms };
+      cachedParams = { text, initialDate, finalDate, mode, max_keywords, n_keywords_dropped, excludes, synonyms };
 
       try {
         if (synonyms) {

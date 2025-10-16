@@ -44,7 +44,7 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 async def main():
     # Define the parameters of the search
     claim = "Electric vehicles are actually worse for environment than gas cars"
-    domain_index = 5  # Index of the Nitter domain to use, change if one domain is down
+    # domain_index = 5  # Index of the Nitter domain to use, change if one domain is down
     max_keywords = 5  # Maximum number of keywords extracted
     synonyms = True  # Whether to use synonyms or not
     n_keywords_dropped = 1  # No advanced search if n_keywords_dropped = 0
