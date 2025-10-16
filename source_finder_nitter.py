@@ -29,8 +29,7 @@ from alignment import AlignmentModel
 from query_builder_synonyms import SynonymQueryBuilder
 
 class SourceFinder:
-    def __init__(self, domain_index=5, max_keywords=5, n_keywords_dropped=2, excludes={"nativeretweets", "replies"}, batch_size=4):
-        self.domain_index = domain_index # Index of the Nitter domain to use, change if one domain is down
+    def __init__(self, max_keywords=5, n_keywords_dropped=2, excludes={"nativeretweets", "replies"}, batch_size=4):
         self.max_keywords = max_keywords # Maximum number of keywords extracted by KeyBert
         self.n_keywords_dropped = n_keywords_dropped # Number of keywords dropped per clause
         self.excludes = excludes
@@ -122,8 +121,7 @@ class SourceFinder:
             print(f"\nFile {filename} already exists.\n")
             return filename, None   
         
-        async with ScraperNitter(domain_index=self.domain_index) as scraper:
-            print(f"Scraping url: {scraper.domain + scraper._get_search_url(query, initial_date, final_date, excludes=self.excludes)}")
+        async with ScraperNitter() as scraper:
             tweets_list = await scraper.get_tweets(
                 query=query, 
                 since=initial_date, 
@@ -191,7 +189,7 @@ class SourceFinder:
 
         alignment_model = AlignmentModel()
 
-        async with ScraperNitter(domain_index=self.domain_index) as scraper:
+        async with ScraperNitter() as scraper:
             while prov_final_year <= (final_year + 1):
                 # Construct dates from the corresponding years and the original initial month and day
                 prov_initial_date = str(prov_initial_year) + initial_date[4:]
@@ -296,7 +294,7 @@ class SourceFinder:
 
         alignment_model = AlignmentModel()
 
-        async with ScraperNitter(domain_index=self.domain_index) as scraper:
+        async with ScraperNitter() as scraper:
             # Loop over each year range
             while prov_final_year <= (final_year + 1):
                 prov_initial_date = str(prov_initial_year) + initial_date[4:]
