@@ -125,6 +125,7 @@
 
     let cachedParams = {};
     let cachedSynonyms = {};
+    let cachedKeywords = null;
 
     document.getElementById('detectForm').addEventListener('submit', async function(e) {
       e.preventDefault();
@@ -161,6 +162,7 @@
           });
           const data = await res.json();
           cachedSynonyms = data.synonyms;
+          cachedKeywords = data.keywords
           displaySynonymOptions(cachedSynonyms);
         } else {
           // Normal pipeline
@@ -205,6 +207,7 @@
         selections[keyword] = [keyword, ...checked];
       });
       cachedParams["selected_synonyms"] = selections;
+      cachedParams["keywords"] = cachedKeywords;
       await performAnalysis(cachedParams);
     });
 

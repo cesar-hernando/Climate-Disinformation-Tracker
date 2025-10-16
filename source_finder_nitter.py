@@ -78,7 +78,7 @@ class SourceFinder:
         return df    
     
 
-    async def find_all(self, claim, initial_date="", final_date="", verbose=False, synonyms=False, dev_mode=False,
+    async def find_all(self, claim, initial_date="", final_date="", verbose=False, synonyms=False, dev_mode=False, keywords=None,
                        model_name="en_core_web_md", top_n_syns=5, threshold=0.1, max_syns_per_kw=2, data_dir="data/", user_choices=None):
         """
         Transforms a claim into a query for advanced search, retrieves tweets using Nitter, selects the
@@ -92,7 +92,8 @@ class SourceFinder:
                 model_name=model_name,
                 top_n_syns=top_n_syns,
                 threshold=threshold,
-                max_syns_per_kw=max_syns_per_kw
+                max_syns_per_kw=max_syns_per_kw,
+                keywords=keywords
             )
 
             # TODO: introduce dev_mode and explain below
@@ -100,9 +101,6 @@ class SourceFinder:
                 keywords = query_builder.keywords
                 query = query_builder.run()
             else:
-                print(user_choices)
-                synonyms = query_builder.get_contextual_synonyms()
-                print(synonyms)
                 query = query_builder.build_boolean_query(user_choices)
         else:
             query_generator = QueryGenerator(claim)
@@ -146,7 +144,7 @@ class SourceFinder:
                 return None, None
         
 
-    async def find_source(self, claim, initial_date="", final_date="", step=1, synonyms=False, dev_mode=False,
+    async def find_source(self, claim, initial_date="", final_date="", step=1, synonyms=False, dev_mode=False, keywords=None,
                           model_name="en_core_web_md", top_n_syns=5, threshold=0.1, max_syns_per_kw=2, user_choices=None):
         """
         The workflow is similar to the method find_all but here we search in steps
@@ -161,15 +159,15 @@ class SourceFinder:
                 model_name=model_name,
                 top_n_syns=top_n_syns,
                 threshold=threshold,
-                max_syns_per_kw=max_syns_per_kw
+                max_syns_per_kw=max_syns_per_kw,
+                keywords=keywords
             )
-            keywords = query_builder.keywords
 
             # TODO: introduce DEV_MODE and explain below
             if dev_mode:
+                keywords = query_builder.keywords
                 query = query_builder.run()
             else:
-                synonyms = query_builder.get_contextual_synonyms()
                 query = query_builder.build_boolean_query(user_choices)
         else:
             query_generator = QueryGenerator(claim)
@@ -275,12 +273,7 @@ class SourceFinder:
                 max_syns_per_kw=max_syns_per_kw
             )
 
-            # TODO: introduce DEV_MODE and explain below
-            if dev_mode:
-                query = query_builder.run()
-            else:
-                synonyms = query_builder.get_contextual_synonyms()
-                query = query_builder.build_boolean_query(user_choices)
+            query = query_builder.run()
         else:
             query_generator = QueryGenerator(claim)
             keywords = query_generator.extract_keywords(max_keywords=self.max_keywords)

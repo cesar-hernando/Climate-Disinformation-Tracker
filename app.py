@@ -42,6 +42,7 @@ class AnalyzeRequest(BaseModel):
     threshold: Optional[float] = 0.1
     max_syns_per_kw: Optional[int] = 2
     selected_synonyms: dict = {}
+    keywords: Optional[list] = []
 
 # Request schema for visualization
 class VisualizationRequest(BaseModel):
@@ -74,7 +75,8 @@ async def analyze(req: AnalyzeRequest):
                 top_n_syns=req.top_n_syns,
                 threshold=req.threshold,
                 max_syns_per_kw=req.max_syns_per_kw,
-                user_choices=req.selected_synonyms
+                user_choices=req.selected_synonyms,
+                keywords=req.keywords
             )
         elif req.mode == "find_all":
             file_name, tweet_list = await source_finder.find_all(
@@ -86,7 +88,8 @@ async def analyze(req: AnalyzeRequest):
                 top_n_syns=req.top_n_syns,
                 threshold=req.threshold,
                 max_syns_per_kw=req.max_syns_per_kw,
-                user_choices=req.selected_synonyms
+                user_choices=req.selected_synonyms,
+                keywords=req.keywords
             )
             if file_name is not None:
                 return file_name
