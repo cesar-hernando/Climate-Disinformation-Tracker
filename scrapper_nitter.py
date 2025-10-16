@@ -11,11 +11,10 @@ from datetime import datetime
 import asyncio
 from playwright.async_api import async_playwright
 
-
 class ScraperNitter:
-    def __init__(self, domain_index=5):
-        self.domains = self._get_domains()
-        self.domain = self.domains[domain_index] if self.domains else "https://nitter.net"
+    def __init__(self):
+        self.domains = self._get_domains()  # List of available Nitter instances
+        self.domain = self.domains[0] if self.domains else "https://nitter.net"
         self.browser = None
         self.context = None
         self.playwright = None
@@ -50,6 +49,14 @@ class ScraperNitter:
         else:
             return None
 
+    def __next_domain(self):
+        """Switch to the next available Nitter instance."""
+        if self.domains:
+            current_index = self.domains.index(self.domain)
+            next_index = (current_index + 1) % len(self.domains)
+            self.domain = self.domains[next_index]
+        else:
+            self.domain = "https://nitter.net"
 
     def _get_search_url(
         self, query, since="", until="", near="", filters={}, excludes={}):
@@ -94,9 +101,10 @@ class ScraperNitter:
         page = await self.context.new_page()
         full_url = self.domain + url
         try:
-            await page.goto(full_url, timeout=60000, wait_until="domcontentloaded")
+            print(f"Fetching URL: {full_url}")
+            resp = await page.goto(full_url, timeout=60000, wait_until="domcontentloaded")
+            status_code = resp.status if resp else 500
             html = await page.content()
-            status_code = 200
         except Exception as e:
             print(f"Playwright error on {full_url}: {e}")
             html, status_code = "", 500
@@ -192,23 +200,25 @@ class ScraperNitter:
             if verbose:
                 print(f"Fetching tweets from: {self.domain + url + cursor}")
             html_content, status_code = await self.__fetch_tweets(url + cursor)
-
             if status_code == 200:
                 tweets, new_cursor = self.__parse_tweets(html_content)
                 all_tweets.extend(tweets if tweets else [])
                 if new_cursor == "finished": # No more tweets to fetch
                     return all_tweets
-                if not tweets:
-                    return all_tweets
-                    
-                if save_csv:    
+                
+                if len(tweets) == 0: # No tweets found on this page, stop the loop
+                    self.__next_domain() # Switch to the next domain if no tweets found
+                    print(f"No tweets found, switching to next domain: {self.domain}")
+
+                if save_csv:
+                    print("Saving tweets to CSV...")
                     self.__save_tweets_to_csv(tweets, filename=filename)
                 
                 if new_cursor:
                     cursor = new_cursor
-
             else:
-                return all_tweets
+                self.__next_domain() # Switch to the next domain if error occurs
+                print(f"Switching to next domain: {self.domain}")
             
     async def check_tweets_exist(self, query, since="", until="", near="", filters={}, excludes={}):
         """Check if there are any tweets matching the search query and parameters."""
@@ -232,10 +242,26 @@ class ScraperNitter:
         """
 
         if all:
+            all_domains = self._get_domains()
             availability_all = []
-            for i, domain in enumerate(self.domains):
+            for i, domain in enumerate(all_domains):
                 try:
-                    response = requests.get(domain, timeout=10)
+                    with async_playwright() as p:
+                        browser = await p.firefox.launch(headless=True)
+                        page = await browser.new_page()
+                        try:
+                            ply_resp = await page.goto(domain, timeout=10000, wait_until="domcontentloaded")
+                            status = ply_resp.status if ply_resp else 500
+                        except Exception:
+                            status = 500
+                        finally:
+                            await browser.close()
+
+                    class _Resp:
+                        def __init__(self, status):
+                            self.status_code = status
+
+                    response = _Resp(status)
                     availability_all.append(response.status_code == 200)
                 except requests.RequestException:
                     availability_all.append(False)
@@ -248,12 +274,13 @@ class ScraperNitter:
                 availability = False
             finally:
                 return availability
-            
+ 
 
 
 
 if __name__ == "__main__":
     async def main():
+        
         claim = "the Earth has always warmed and cooled"
         initial_date = "2023-01-01"
         final_date = "2025-10-01"
