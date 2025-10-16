@@ -17,7 +17,6 @@ class SynonymQueryBuilder:
 
     def extract_keywords(self, max_keywords=5):
         """Extract keywords from text using KeyBERT."""
-        print("called extract_keywords")
         kw_model = KeyBERT(model="AIDA-UPM/mstsb-paraphrase-multilingual-mpnet-base-v2")
         keywords = kw_model.extract_keywords(self.sentence, top_n=max_keywords)
         keywords = [k[0] for k in keywords]

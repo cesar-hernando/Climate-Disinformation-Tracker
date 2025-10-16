@@ -42,7 +42,7 @@
             <input type="checkbox" id="use-synonyms" name="synonyms"> Use Synonyms
           </label>
 
-          <div id="synonym-options" style="display: none; margin-left: 1em;">
+          <div id="synonym-options" style="display: none;">
             <label for="model_name">Model:</label>
             <select id="model_name" name="model_name">
               <option value="en_core_web_md" selected>en_core_web_md</option>
@@ -170,9 +170,7 @@
         }
       } catch (err) {
         resultDiv.textContent = 'Network error.';
-      } finally {
-        analyzeBtn.disabled = false;
-      }
+      } 
     });
 
     function displaySynonymOptions(synonyms) {
@@ -193,6 +191,7 @@
                 <input type="checkbox" name="${kw}" value="${s}"> ${s}
               </label>
             `).join('')}
+            ${syns.length === 0 ? '<em>No synonyms found</em>' : ''}
           </div>
         `;
         list.appendChild(div);
@@ -208,6 +207,7 @@
       });
       cachedParams["selected_synonyms"] = selections;
       cachedParams["keywords"] = cachedKeywords;
+      document.getElementById('synonymSection').style.display = 'none';
       await performAnalysis(cachedParams);
     });
 
@@ -233,6 +233,7 @@
               <p><a href="https://twitter.com${data.link}" target="_blank">View on Twitter</a></p>
             </div>
           `;
+          analyzeBtn.disabled = false;
         } else if (params.mode === 'find_all') {
           const dashboardResponse = await fetch('/api/visualization', {
             method: 'POST',
