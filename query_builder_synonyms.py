@@ -17,6 +17,7 @@ class SynonymQueryBuilder:
 
     def extract_keywords(self, max_keywords=5):
         """Extract keywords from text using KeyBERT."""
+        print("called extract_keywords")
         kw_model = KeyBERT(model="AIDA-UPM/mstsb-paraphrase-multilingual-mpnet-base-v2")
         keywords = kw_model.extract_keywords(self.sentence, top_n=max_keywords)
         keywords = [k[0] for k in keywords]
@@ -28,11 +29,12 @@ class SynonymQueryBuilder:
         synonym_finder = Synonyms(model_name=self.model_name)
         for kw in self.keywords:
             self.synonyms[kw] = synonym_finder.find_contextual(
-                word=kw, 
-                sentence=self.sentence, 
-                top_n=top_n_syns, 
-                threshold=threshold
+                word=kw,
+                sentence=self.sentence,
+                top_n=self.top_n_syns,
+                threshold=self.threshold
             )
+        return self.synonyms
 
 
     def interactive_selection(self, max_syns_per_kw=2):

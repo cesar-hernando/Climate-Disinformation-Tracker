@@ -192,8 +192,6 @@ select:focus {
   flex-direction: column;
 }
 
-
-
 /* Collapsible content */
 .advanced-content {
   display: none;

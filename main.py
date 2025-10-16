@@ -55,7 +55,6 @@ async def main():
     threshold = 0.1 # Similarity threshold for contextual synonyms
     max_syns_per_kw = 2 # Maximum number of synonyms to select per keyword
 
-
     start_time = time.time()
     source_finder = SourceFinder(domain_index=domain_index, 
                                 max_keywords=max_keywords, 
@@ -70,11 +69,11 @@ async def main():
         if by_month:
             oldest_aligned_tweet, _ = await source_finder.find_source_high_volume(claim, initial_date, final_date, step_years=step, 
                                                                                   synonyms=synonyms, model_name=model_name, top_n_syns=top_n_syns, 
-                                                                                  threshold=threshold, max_syns_per_kw=max_syns_per_kw)
+                                                                                  threshold=threshold, max_syns_per_kw=max_syns_per_kw, dev_mode=True)
         else:
             oldest_aligned_tweet, _ = await source_finder.find_source(claim, initial_date, final_date, step,
                                                                       synonyms=synonyms, model_name=model_name, top_n_syns=top_n_syns, 
-                                                                      threshold=threshold, max_syns_per_kw=max_syns_per_kw)
+                                                                      threshold=threshold, max_syns_per_kw=max_syns_per_kw, dev_mode=True)
         end_time = time.time()
         run_time = end_time - start_time
         print(f"\nExecution time of the Source Finder: {run_time:.2f} s\n")
@@ -83,7 +82,7 @@ async def main():
         final_date = "2025-10-10"
         filename, tweet_list = await source_finder.find_all(claim, initial_date, final_date, verbose=False, synonyms=synonyms, 
                                                              model_name=model_name, top_n_syns=top_n_syns, 
-                                                             threshold=threshold, max_syns_per_kw=max_syns_per_kw)
+                                                             threshold=threshold, max_syns_per_kw=max_syns_per_kw, dev_mode=True)
 
         end_time = time.time()
         run_time = end_time - start_time
