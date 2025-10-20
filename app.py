@@ -99,7 +99,9 @@ async def analyze(req: AnalyzeRequest):
         else:
             return {"error": f"Unknown mode: {req.mode}"}
 
-        return result[0] # TODO: check if we want to return more
+        earliest_batch = result[2] if result[2] is not None else []
+
+        return result[0], earliest_batch # TODO: check if we want to return more
     except Exception as e:
         return {"error": str(e)}
 
