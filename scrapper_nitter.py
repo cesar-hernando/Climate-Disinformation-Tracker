@@ -142,7 +142,8 @@ class ScraperNitter:
         soup = BeautifulSoup(html_content, "html.parser")
         tweets = []
 
-        if soup.find("h2", class_="timeline-end"):
+        # if timeline-end for if tweets where found or timeline-none for if no tweets where found
+        if soup.find("h2", class_="timeline-end") or soup.find("h2", class_="timeline-none"):
             return None, "finished"
 
         for tweet in soup.find_all("div", class_="timeline-item"):
