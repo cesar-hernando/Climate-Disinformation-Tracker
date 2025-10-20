@@ -1,11 +1,12 @@
-from dash import Input, Output, ctx, html
+from dash import Input, Output, ctx, html, dcc, callback
 import pandas as pd
-from . import figures
-from .utils import TweetList, TweetCard
 
-def register_callbacks(app):
+from visualization.utils import figures
+from visualization.utils.tweet_utils import TweetList, TweetCard
 
-    @app.callback(
+def register_callbacks():
+
+    @callback(
         Output("first-entailment-tweet", "children"),
         Input("data-store", "data")
     )
@@ -20,7 +21,7 @@ def register_callbacks(app):
         first_tweet = entailment_tweets.sort_values("created_at_datetime").iloc[0]
         return TweetCard(first_tweet)
     
-    @app.callback(
+    @callback(
         Output("time-series", "figure"),
         Input("data-store", "data"),
         Input("alignment-checklist", "value") 
@@ -32,7 +33,7 @@ def register_callbacks(app):
             df = df[df['alignment'].isin(selected_alignments)]
         return figures.tweets_over_time(df)
 
-    @app.callback(
+    @callback(
         Output("top-users", "figure"),
         Input("data-store", "data"),
         Input("alignment-checklist", "value")
@@ -43,7 +44,7 @@ def register_callbacks(app):
             df = df[df['alignment'].isin(selected_alignments)]
         return figures.top_users(df)
     
-    @app.callback(
+    @callback(
         Output("bubble-chart", "figure"),
         Input("data-store", "data"),
         Input("alignment-checklist", "value") 
@@ -54,7 +55,7 @@ def register_callbacks(app):
             df = df[df['alignment'].isin(selected_alignments)]
         return figures.tweet_bubble_chart(df)
     
-    @app.callback(
+    @callback(
         Output("selection-store", "data"),
         Input("time-series", "clickData"),
         Input("top-users", "clickData"),
@@ -82,7 +83,7 @@ def register_callbacks(app):
 
         return current
     
-    @app.callback(
+    @callback(
         Output("selection-info", "children"),
         Input("selection-store", "data")
     )
@@ -99,7 +100,7 @@ def register_callbacks(app):
         return " | ".join(parts)
 
 
-    @app.callback(
+    @callback(
         Output("tweet-list", "children"),
         Input("selection-store", "data"),
         Input("data-store", "data"),
@@ -129,7 +130,7 @@ def register_callbacks(app):
 
         return TweetList(df.to_dict('records'))
     
-    @app.callback(
+    @callback(
         Output("selected-tweet", "children"),
         Input("bubble-chart", "clickData"),
         Input("data-store", "data")
@@ -154,6 +155,7 @@ def register_callbacks(app):
         tweet = tweet.iloc[0]
 
         return TweetCard(tweet)
+
 
 
 

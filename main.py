@@ -44,7 +44,7 @@ async def main():
     max_keywords = 5 # Maximum number of keywords extracted
     synonyms = False # Whether to use synonyms or not
     n_keywords_dropped = 1 # No advanced search if n_keywords_dropped = 0
-    excludes={"nativeretweets", "replies"}
+    excludes={"nativeretweets"}
     top_n_tweeters = 3 # Top usernames with more tweets about a topic
 
     mode = 1 # 0 (find source) or 1 (retrieve all)
@@ -79,8 +79,8 @@ async def main():
         print(f"\nExecution time of the Source Finder: {run_time:.2f} s\n")
     else: 
         initial_date = ""
-        final_date = "2025-10-10"
-        filename, tweet_list = await source_finder.find_all(claim, initial_date, final_date, verbose=True, synonyms=synonyms, 
+        final_date = ""
+        filename, tweet_list = await source_finder.find_all(claim, initial_date, final_date, verbose=False, synonyms=synonyms, 
                                                              model_name=model_name, top_n_syns=top_n_syns, 
                                                              threshold=threshold, max_syns_per_kw=max_syns_per_kw)
 

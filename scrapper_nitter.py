@@ -134,6 +134,13 @@ class ScraperNitter:
             link = tweet.find("a", class_="tweet-link")
             tweet_data["link"] = link["href"] if link and link.has_attr("href") else ""
 
+            replying_to = tweet.find("div", class_="replying-to")
+            tweet_data["replying-to"] = [a.get_text(strip=True) for a in replying_to.find_all('a')] if replying_to else []
+
+            quote = tweet.find("div", class_="quote")
+            quote_user = quote.find("a", class_="username") if quote else None
+            tweet_data["quoting"] = quote_user.text.strip() if quote_user else ""
+
             tweet_stat = tweet.find_all("span", class_="tweet-stat")
             if len(tweet_stat) < 4:
                 tweet_data["comments"] = 0
@@ -172,6 +179,8 @@ class ScraperNitter:
                     "retweets",
                     "likes",
                     "quotes",
+                    "replying-to",
+                    "quoting",
                 ],
             )
             if file.tell() == 0:
@@ -264,7 +273,8 @@ if __name__ == "__main__":
                 query=claim, 
                 since=initial_date, 
                 until=final_date, 
-                excludes={"nativeretweets", "replies"}, 
+                save_csv=True, 
+                excludes={"nativeretweets"}, 
                 filename=filename)
 
         print(f"Scraping completed. Tweets saved to {filename}.")

@@ -138,7 +138,7 @@ class SourceFinder:
                 return None, None
         
 
-    async def find_source(self, claim, initial_date="", final_date="", step=1, synonyms=True, 
+    async def find_source(self, claim, initial_date="", final_date="", step=1, synonyms=False, 
                           model_name="en_core_web_md", top_n_syns=5, threshold=0.1, max_syns_per_kw=2):
         """
         The workflow is similar to the method find_all but here we search in steps

@@ -2,6 +2,8 @@ body {
     font-family: 'Roboto', sans-serif;
     font-size: 16px;
     color: #333333;
+    margin: 0;
+    padding: 0;
 }
 
 h1 {
@@ -58,6 +60,28 @@ a {
 .tweet-timestamp {
   font-size: 12px;
   color: #777;
+}
+
+.replying-to, .quoting {
+  display: flex;
+  flex-wrap: wrap;        /* <-- this allows wrapping */
+  align-items: center;
+  gap: 4px;               /* spacing between usernames */
+  font-size: 12px;
+  color: #555;
+  margin-bottom: 4px;
+  max-width: 100%;        /* keeps it within the card */
+  word-break: break-word; /* ensures no overflow */
+}
+
+.reply-tag, .quote-tag {
+  color: #1DA1F2;
+  margin-left: 3px;
+  text-decoration: none;
+}
+
+.reply-tag:hover, .quote-tag:hover {
+  text-decoration: underline;
 }
 
 /* Tweet content */
@@ -155,4 +179,90 @@ a {
 .alignment-filter input[type="checkbox"] {
     accent-color: #1DA1F2;
     cursor: pointer;
+}
+
+/* ---------- Navbar Container ---------- */
+.navbar {
+    color: #1e1e1e;
+    padding: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+/* ---------- Center Section ---------- */
+.navbar-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+}
+
+.navbar-title {
+    font-weight: 700;
+    font-size: 1.5em;
+    margin-bottom: 4px;
+    line-height: 1.2;
+}
+
+.navbar-claim {
+    font-style: italic;
+    opacity: 0.85;
+    font-size: 0.9em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 60vw;
+    line-height: 1.2;
+}
+
+/* ---------- Button Group ---------- */
+.btn-group {
+    display: flex;
+    align-items: center;
+    border-radius: 999px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* ---------- Button Base ---------- */
+.nav-btn {
+    background-color: #e0e0e0;
+    color: #333;
+    padding: 8px 18px;
+    border: none;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9em;
+    transition: all 0.25s ease;
+    display: inline-block;
+    text-align: center;
+}
+
+/* ---------- Button Hover ---------- */
+.nav-btn:hover {
+    background-color: #cfcfcf;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* ---------- Button Shape ---------- */
+.btn-left {
+    border-radius: 999px 0 0 999px;
+    border-right: 1px solid #cfcfcf;
+}
+
+.btn-right {
+    border-radius: 0 999px 999px 0;
+}
+
+/* ---------- Spacer ---------- */
+.navbar-spacer {
+    width: 120px; /* keeps layout balanced */
 }
