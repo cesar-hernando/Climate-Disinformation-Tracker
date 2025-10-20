@@ -29,11 +29,10 @@ from alignment import AlignmentModel
 from query_builder_synonyms import SynonymQueryBuilder
 
 class SourceFinder:
-    def __init__(self, max_keywords=5, n_keywords_dropped=2, excludes={"nativeretweets", "replies"}, batch_size=4):
+    def __init__(self, max_keywords=5, n_keywords_dropped=2, excludes={"nativeretweets", "replies"}):
         self.max_keywords = max_keywords # Maximum number of keywords extracted by KeyBert
         self.n_keywords_dropped = n_keywords_dropped # Number of keywords dropped per clause
         self.excludes = excludes
-        self.batch_size = batch_size
     
 
     @staticmethod
@@ -60,7 +59,7 @@ class SourceFinder:
         """
         alignment_model = AlignmentModel()
         print(f"Predicting alignment for {len(tweets_list)} tweets...")
-        alignment_list = alignment_model.batch_predict(claim, tweets_list, batch_size=self.batch_size)
+        alignment_list = alignment_model.batch_predict(claim, tweets_list)
 
         if not tweets_list or not alignment_list or len(tweets_list) != len(alignment_list):
             print("No tweets or alignment data to save, or lengths do not match.")
@@ -114,8 +113,8 @@ class SourceFinder:
         if final_date == "":
             final_date = date.today().strftime("%Y-%m-%d")
 
-        ind_syns = "with_syns" if synonyms else ""
-        filename = data_dir + "_".join(keywords) + f'_kpc_{self.max_keywords - self.n_keywords_dropped}_{initial_date}_to_{final_date}_{ind_syns}.csv' # kpc stands for keywords per clause
+        ind_syns = "_with_syns" if synonyms else ""
+        filename = data_dir + "_".join(keywords) + f'_kpc_{self.max_keywords - self.n_keywords_dropped}_{initial_date}_to_{final_date}{ind_syns}.csv' # kpc stands for keywords per clause
 
         if os.path.exists(filename):
             print(f"\nFile {filename} already exists.\n")
@@ -213,7 +212,7 @@ class SourceFinder:
                     prov_final_year += step
                     continue
 
-                aligned_tweets = alignment_model.batch_filter_tweets(claim, tweets_list, batch_size=self.batch_size)
+                aligned_tweets = alignment_model.batch_filter_tweets(claim, tweets_list)
 
                 if aligned_tweets:
                     oldest_aligned_tweet = alignment_model.find_first(aligned_tweets)
@@ -241,7 +240,7 @@ class SourceFinder:
             else:
                 print(f"No tweets were found.")
                 return None, None
-            aligned_tweets = alignment_model.batch_filter_tweets(claim, tweets_list, batch_size=self.batch_size)
+            aligned_tweets = alignment_model.batch_filter_tweets(claim, tweets_list)
             if aligned_tweets:
                     oldest_aligned_tweet = alignment_model.find_first(aligned_tweets)
                     print("\nOldest aligned tweet:")
@@ -354,8 +353,7 @@ class SourceFinder:
                     # Check alignment immediately
                     aligned_tweets = alignment_model.batch_filter_tweets(
                         claim,
-                        month_tweets,
-                        batch_size=self.batch_size
+                        month_tweets
                     )
 
                     if aligned_tweets:
@@ -420,7 +418,6 @@ if __name__ == "__main__":
         max_keywords = 5 # Maximum number of keywords extracted
         n_keywords_dropped = 1 # No advanced search if n=0 (# of keywords - n = number of words in each clause)
         excludes={"nativeretweets", "replies"}
-        batch_size = 4 
         top_n_tweeters = 3 # Top usernames with more tweets about a topic
 
         mode = 1 # 0 (find source) or 1 (retrieve all)
@@ -428,8 +425,7 @@ if __name__ == "__main__":
         start_time = time.time()
         source_finder = SourceFinder(max_keywords=max_keywords, 
                                     n_keywords_dropped=n_keywords_dropped, 
-                                    excludes=excludes, 
-                                    batch_size=batch_size)
+                                    excludes=excludes)
 
         if mode == 0:
             initial_date = "2007-01-01"

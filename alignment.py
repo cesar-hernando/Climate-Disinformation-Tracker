@@ -4,8 +4,9 @@ import torch
 
 
 class AlignmentModel:
-    def __init__(self, model_name="MoritzLaurer/mDeBERTa-v3-base-mnli-xnli"):
+    def __init__(self, batch_size=16, model_name="MoritzLaurer/mDeBERTa-v3-base-mnli-xnli"):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.batch_size = 64 if torch.cuda.is_available() else batch_size
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.model = AutoModelForSequenceClassification.from_pretrained(model_name).to(self.device)
 
@@ -31,14 +32,14 @@ class AlignmentModel:
             print(f'    => {self.labels[label]}')
         return label
     
-    def batch_predict(self, original_claim, tweets, batch_size=16, verbose=False):
+    def batch_predict(self, original_claim, tweets, verbose=False):
         """
         Compare many tweets against a claim in batches.
         Returns list of label IDs in same order as input tweets.
         """
         results = []
-        for i in range(0, len(tweets), batch_size):
-            batch_texts = [t['text'] for t in tweets[i:i+batch_size]]
+        for i in range(0, len(tweets), self.batch_size):
+            batch_texts = [t['text'] for t in tweets[i:i+self.batch_size]]
             # Tokenize all pairs in the batch
             inputs = self.tokenizer(
                 batch_texts,
@@ -67,9 +68,9 @@ class AlignmentModel:
         tweets = [tweet for tweet in tweets if self.labels[self.predict(original_claim, tweet['text'], verbose)] == 'ENTAILMENT']
         return tweets
     
-    def batch_filter_tweets(self, original_claim, tweets, batch_size=16, verbose=False):
+    def batch_filter_tweets(self, original_claim, tweets, verbose=False):
         """ Filter tweets that entail the original claim using batch processing """
-        labels = self.batch_predict(original_claim, tweets, batch_size, verbose)
+        labels = self.batch_predict(original_claim, tweets, verbose)
         tweets = [tweet for tweet, label in zip(tweets, labels) if self.labels[label] == 'ENTAILMENT']
         return tweets
 
@@ -87,4 +88,5 @@ if __name__ == "__main__":
         {"text": "Climate change is just caused by natural cycles of the sun.", "created_at_datetime": "2019-01-01"},
         {"text": "Climate change is a complex issue with multiple factors.", "created_at_datetime": "2021-01-01"},
     ]
+    print(model.device)
     print(model.batch_predict(claim, tweets, verbose=True))
