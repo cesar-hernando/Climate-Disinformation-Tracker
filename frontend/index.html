@@ -213,10 +213,10 @@
 
       if (response.ok) {
         const result = await response.json();
-        const data = result[0];
-        const earliest_batch = result[1];
-        console.log("Earliest batch:", earliest_batch);
+        
         if (params.mode === 'find_source') {
+          const data = result[0];
+          const earliest_batch = result[1];
           resultDiv.innerHTML = `
             <div class="result-card">
               <p><strong>User:</strong> ${data.user}</p>
@@ -250,7 +250,7 @@
           const dashboardResponse = await fetch('/api/visualization', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ filename: data, claim: params.text })
+            body: JSON.stringify({ filename: result, claim: params.text })
           });
           const dashboardData = await dashboardResponse.json();
           if (dashboardData.redirect_url) {
