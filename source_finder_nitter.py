@@ -467,7 +467,7 @@ if __name__ == "__main__":
 
     async def main():
         # params (same as before)
-        claim = "Fluoride in drinking water is used to dumb down and control populations."
+        claim = "The earth is surrounded by an ice wall."
         max_keywords = 5
         n_keywords_dropped = 1
         excludes = {"nativeretweets", "replies"}
@@ -483,7 +483,7 @@ if __name__ == "__main__":
         )
 
         if mode == 0:
-            initial_date = "2007-01-01"
+            initial_date = "2025-04-29"
             final_date   = "2025-10-08"
             step = 1
 
