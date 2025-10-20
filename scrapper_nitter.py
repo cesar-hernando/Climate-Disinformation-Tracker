@@ -38,8 +38,27 @@ class ScraperNitter:
             await self.playwright.stop()
 
 
-    def _get_domains(self):
-        """Fetch the list of clear web Nitter instances."""
+    def _get_domains(self, validated_only: bool = True) -> list[str] | None:
+        """
+        Return a list of clear-web Nitter instance URLs.
+    
+        Args:
+            validated_only (bool, optional): 
+                If True (default), return a small hardcoded list of validated/trusted
+                Nitter instances. If False, attempt to fetch the full list from the
+                libredirect instances repository.
+            
+        Returns:
+            A list of Nitter instance base URLs when successful. If validated_only is
+            False and the remote fetch fails (non-OK response or invalid JSON), None
+            is returned.
+        """
+
+        if validated_only:  # Return a hardcoded list of validated instances
+            return [
+                "https://nitter.tiekoetter.com",
+                "https://nitter.poast.org",
+            ]
 
         r = requests.get(
             "https://raw.githubusercontent.com/libredirect/instances/main/data.json"
@@ -101,7 +120,6 @@ class ScraperNitter:
         page = await self.context.new_page()
         full_url = self.domain + url
         try:
-            print(f"Fetching URL: {full_url}")
             resp = await page.goto(full_url, timeout=60000, wait_until="domcontentloaded")
             status_code = resp.status if resp else 500
             html = await page.content()
@@ -284,7 +302,7 @@ if __name__ == "__main__":
         claim = "the Earth has always warmed and cooled"
         initial_date = "2023-01-01"
         final_date = "2025-10-01"
-        filename = f'test_Earth_warmed_cooled_{initial_date}_to_{final_date}.csv'
+        filename = f'data/test_Earth_warmed_cooled_{initial_date}_to_{final_date}.csv'
 
         async with ScraperNitter() as scraper:
             await scraper.get_tweets(
