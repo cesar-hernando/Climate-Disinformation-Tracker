@@ -22,6 +22,7 @@ from collections import Counter
 import asyncio
 import os
 import pandas as pd
+from datetime import date as _date
 
 from scrapper_nitter import ScraperNitter
 from query_generator import QueryGenerator
@@ -156,20 +157,8 @@ class SourceFinder:
                 print(f"\nNo tweets were found.\n")
                 return None, None
 
-    async def find_source(
-    self,
-    claim,
-    initial_date="",
-    final_date="",
-    step=1,
-    synonyms=True,
-    model_name="en_core_web_md",
-    top_n_syns=5,
-    threshold=0.1,
-    max_syns_per_kw=2,
-    *,
-    earliest_k: int = 0,  
-):
+    async def find_source(self, claim, initial_date="", final_date="", step=1, synonyms=True, model_name="en_core_web_md", 
+                          top_n_syns=5, threshold=0.1, max_syns_per_kw=2, earliest_k: int = 0):
         """
         Find the earliest entailing tweet ('source').
         Additionally, if earliest_k > 0, also collect up to earliest_k earliest tweets
@@ -178,7 +167,7 @@ class SourceFinder:
 
         NEW: even after the source is found, keep scanning forward until earliest_buf is full.
         """
-        from datetime import date as _date
+        
         if synonyms:
             query_builder = SynonymQueryBuilder(
                 sentence=claim,
@@ -189,6 +178,7 @@ class SourceFinder:
                 threshold=threshold,
                 max_syns_per_kw=max_syns_per_kw
             )
+            keywords = query_builder.keywords
             query = query_builder.run()
         else:
             query_generator = QueryGenerator(claim)
@@ -201,7 +191,7 @@ class SourceFinder:
         print(f"\nGenerated Boolean Query:\n{query}\n")
 
         if initial_date == "":
-            initial_date = "2006-03-21"
+            initial_date = "2006-03-21" # Beginning of Twitter
         if final_date == "":
             final_date = _date.today().strftime("%Y-%m-%d")
 
@@ -520,55 +510,3 @@ if __name__ == "__main__":
         print(f"\nExecution time of the Source Finder: {end_time - start_time:.2f} s\n")
 
     asyncio.run(main())
-
-# if __name__ == "__main__":
-
-#     async def main():
-#         claim = "Fluoride in drinking water is used to dumb down and control populations"
-#         max_keywords = 5
-#         n_keywords_dropped = 1
-#         excludes = {"nativeretweets", "replies"}
-#         batch_size = 4
-#         mode = 0  # 0=find source (+ print earliest list), 1=retrieve all
-
-#         start_time = time.time()
-#         source_finder = SourceFinder(
-#             max_keywords=max_keywords,
-#             n_keywords_dropped=n_keywords_dropped,
-#             excludes=excludes,
-#             batch_size=batch_size
-#         )
-
-#         if mode == 0:
-#             initial_date = "2007-01-01"
-#             final_date   = "2025-10-08"
-#             step = 1
-#             source, aligned, earliest = await source_finder.find_source(
-#                 claim,
-#                 initial_date=initial_date,
-#                 final_date=final_date,
-#                 step=step,
-#                 synonyms=True,
-#                 earliest_k=150,   
-#             )
-
-#             # raw print
-#             print("\nSOURCE:")
-#             print(source)   
-
-#             # buffer
-#             print("\nEARLIEST TWEETS:")
-#             print(earliest) 
-
-#         else:
-#             initial_date = ""
-#             final_date   = "2025-10-08"
-#             filename, tweet_list = await source_finder.find_all(claim, initial_date, final_date)
-#             print(f"{len(tweet_list)} Tweets saved in {filename}")
-
-#         end_time = time.time()
-#         print(f"\nExecution time of the Source Finder: {end_time - start_time:.2f} s\n")
-
-#     asyncio.run(main())
-
-
