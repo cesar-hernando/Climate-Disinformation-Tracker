@@ -42,6 +42,7 @@ class AnalyzeRequest(BaseModel):
     max_syns_per_kw: Optional[int] = 2
     selected_synonyms: dict = {}
     keywords: Optional[list] = []
+    earliest_k: int = 0
 
 # Request schema for visualization
 class VisualizationRequest(BaseModel):
@@ -74,7 +75,8 @@ async def analyze(req: AnalyzeRequest):
                 threshold=req.threshold,
                 max_syns_per_kw=req.max_syns_per_kw,
                 user_choices=req.selected_synonyms,
-                keywords=req.keywords
+                keywords=req.keywords,
+                earliest_k=req.earliest_k,
             )
         elif req.mode == "find_all":
             file_name, tweet_list = await source_finder.find_all(

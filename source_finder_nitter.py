@@ -170,6 +170,8 @@ class SourceFinder:
 
         NEW: even after the source is found, keep scanning forward until earliest_buf is full.
         """
+
+        print("earliest_k", earliest_k)
         
         if synonyms:
             query_builder = SynonymQueryBuilder(

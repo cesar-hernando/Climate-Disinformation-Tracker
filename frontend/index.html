@@ -60,10 +60,13 @@
           </div>
 
           <label for="max_keywords">Max Keywords</label>
-          <input type="text" id="max_keywords" name="max_keywords" value="5">
+          <input type="number" id="max_keywords" name="max_keywords" value="5">
 
           <label for="n_keywords_dropped">Number of Keywords Dropped</label>
-          <input type="text" id="n_keywords_dropped" name="n_keywords_dropped" value="1">
+          <input type="number" id="n_keywords_dropped" name="n_keywords_dropped" value="1">
+
+          <label for="earliest_k">Earliest K</label>
+          <input type="number" id="earliest_k" name="earliest_k" value="0">
           
           <label>Excludes</label>
           <div id="excludes" class="checkbox-group">
@@ -135,8 +138,9 @@
       const top_n_syns = parseInt(document.getElementById('top_n_syns').value);
       const threshold = parseFloat(document.getElementById('threshold').value);
       const max_syns_per_kw = parseInt(document.getElementById('max_syns_per_kw').value);
+      const earliest_k = parseInt(document.getElementById('earliest_k').value);
 
-      cachedParams = { text, initialDate, finalDate, mode, max_keywords, n_keywords_dropped, excludes, synonyms };
+      cachedParams = { text, initialDate, finalDate, mode, max_keywords, n_keywords_dropped, excludes, synonyms, max_syns_per_kw, earliest_k };
 
       try {
         if (synonyms) {
