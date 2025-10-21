@@ -95,13 +95,14 @@ class ScraperNitter:
         )
 
     
-    async def __fetch_tweets(self, url):
+    async def __fetch_tweets(self, url, verbose=False):
         """Fetch page HTML using Playwright."""
 
         page = await self.context.new_page()
         full_url = self.domain + url
         try:
-            print(f"Fetching URL: {full_url}")
+            if verbose:
+                print(f"Fetching URL: {full_url}")
             resp = await page.goto(full_url, timeout=60000, wait_until="domcontentloaded")
             status_code = resp.status if resp else 500
             html = await page.content()
@@ -142,7 +143,7 @@ class ScraperNitter:
             link = tweet.find("a", class_="tweet-link")
             tweet_data["link"] = link["href"] if link and link.has_attr("href") else ""
 
-            replying_to = tweet.find("div", class_="replying-to")
+            replying_to = tweet.find("div", class_="replying-to", recursive=False)
             tweet_data["replying-to"] = [a.get_text(strip=True) for a in replying_to.find_all('a')] if replying_to else []
 
             quote = tweet.find("div", class_="quote")

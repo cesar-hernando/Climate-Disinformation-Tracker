@@ -52,9 +52,10 @@ def TweetCard(tweet):
             quoting_html if quoting_html else None,
             html.Div(tweet["text"], className="tweet-content"),
             html.Div([
-                html.Span(f"💬 {tweet.get('comments', 0)}", className="tweet-comments"),
-                html.Span(f"🔁 {tweet.get('retweets', 0)}", className="tweet-retweets"),
-                html.Span(f"❤️ {tweet.get('likes', 0)}", className="tweet-likes"),
+                html.Span(f"💬 {tweet.get('comments', 0)}", className="tweet-stats-middle"),
+                html.Span(f"🔁 {tweet.get('retweets', 0)}", className="tweet-stats-middle"),
+                html.Span(f"❤️ {tweet.get('likes', 0)}", className="tweet-stats-middle"),
+                html.Span(f"💭 {tweet.get('quotes', 0)}"),
             ], className="tweet-stats")
         ], className="tweet-card")
     )

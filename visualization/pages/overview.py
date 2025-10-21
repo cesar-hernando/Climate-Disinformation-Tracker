@@ -5,12 +5,6 @@ from visualization.callbacks import callbacks
 register_page(__name__, path='/', name='Overview')
 
 def layout(**kwargs):
-    labels = {
-        'Entailment': 0,
-        'Neutral': 1,
-        'Contradiction': 2
-    }
-
     return html.Div([
         html.Div(
             [
@@ -22,16 +16,6 @@ def layout(**kwargs):
             ],
             style={"marginTop": "25px", "marginBottom": "15px"},
         ),
-
-        html.Div([
-            html.Span("Show tweets:"),
-            dcc.Checklist(
-                id="alignment-checklist",
-                options=[{"label": label, "value": labels[label]} for label in labels.keys()],
-                value=list(labels.values()),  # default: all
-                style={"marginTop": "4px"}
-            )
-        ], className="alignment-filter"),
 
         # Bubble chart row: Bubble Chart + Selected Tweet
         html.Div([

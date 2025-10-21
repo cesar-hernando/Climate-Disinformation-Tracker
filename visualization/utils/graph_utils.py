@@ -17,12 +17,12 @@ def build_graph(df, include_replies=True, include_quotes=True):
 
         if include_replies:
             for target in replying_to:
-                G.add_edge(author, target, interaction="reply")
+                G.add_edge(author, target, interaction="reply", alignment=row["alignment"])
 
         # Handle quoting
         quoted = row.get("quoting")
         if include_quotes and pd.notna(quoted) and quoted != "":
-            G.add_edge(author, quoted, interaction="quote")
+            G.add_edge(author, quoted, interaction="quote", alignment=row["alignment"])
 
     # Node centrality for size
     centrality = nx.degree_centrality(G)
@@ -41,7 +41,7 @@ def nx_to_cyto(G):
             "data": {
                 "id": n,
                 "label": n,
-                "centrality": round(data.get("centrality", 0), 4),
+                "centrality": round(data.get("centrality", 0), 4)                
             }
         })
     for u, v, data in G.edges(data=True):
@@ -49,7 +49,8 @@ def nx_to_cyto(G):
             "data": {
                 "source": u,
                 "target": v,
-                "interaction": data.get("interaction", "unknown")
+                "interaction": data.get("interaction", "unknown"),
+                "alignment": data.get("alignment", "unknown")
             }
         })
     return elements

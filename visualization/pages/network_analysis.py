@@ -3,43 +3,37 @@ from dash import html, dcc, register_page
 import dash_cytoscape as cyto
 from visualization.callbacks import network_callbacks
 
-filename = "test_Earth_warmed_cooled_2023-01-01_to_2025-10-01.csv"
-
-df = pd.read_csv(filename)
-df["text"] = df["text"].str.replace(r"\\n", "\n", regex=True).str.strip('"\'')  # turn \n into newline and remove wrapping quotes
-df["created_at_datetime"] = pd.to_datetime(df["created_at_datetime"], errors="coerce")
-df = df.dropna(subset=["created_at_datetime"])
-
-# --------------------------------------------------
-# 4. Dash App
-# --------------------------------------------------
 register_page(__name__, path='/network', name='Network Analysis')
 
 def layout(**kwargs):
     return html.Div([
-
         html.Div([
             html.Label("Date Range:"),
             dcc.DatePickerRange(
                 id="date-range",
-                min_date_allowed=df["created_at_datetime"].min().date(),
-                max_date_allowed=df["created_at_datetime"].max().date(),
-                start_date=df["created_at_datetime"].min().date(),
-                end_date=df["created_at_datetime"].max().date(),
                 display_format="YYYY-MM-DD"
             ),
             dcc.Checklist(
-                id="interaction-filter",
-                options=[
-                    {"label": "Replies", "value": "reply"},
-                    {"label": "Quotes", "value": "quote"}
-                ],
-                value=["reply", "quote"],
-                inline=True
-            )
+                    id="interaction-filter",
+                    options=[
+                        {"label": html.Span([
+                            "Replies ",
+                            html.Span(style={"borderBottom": "2px solid #555", "width": "20px", "display": "inline-block", "marginLeft": "5px", "verticalAlign": "middle"})
+                        ]), "value": "reply"},
+                        {"label": html.Span([
+                            "Quotes ",
+                            html.Span(style={"borderBottom": "2px dashed #555", "width": "20px", "display": "inline-block", "marginLeft": "5px", "verticalAlign": "middle"})
+                        ]), "value": "quote"}
+                    ],
+                    value=["reply", "quote"],
+                    inline=True,
+                    labelStyle={"display": "inline-flex", "alignItems": "center", "marginRight": "10px"}
+                ),
+            html.Div(id="no-replies-message")
+
         ], style={"textAlign": "center", "marginBottom": "10px", "display": "flex", "justifyContent": "center", "gap": "20px", "alignItems": "center"}),
 
-        html.Div([
+        html.Div(id="network-graph-container", children=[
             html.Div([
                 cyto.Cytoscape(
                     id="tweet-network",
@@ -68,17 +62,38 @@ def layout(**kwargs):
                             }
                         },
                         {
+                            # Replies will be a solid line
                             "selector": '[interaction = "reply"]',
                             "style": {
-                                "line-color": "#00CC96",
-                                "target-arrow-color": "#00CC96"
+                                "line-style": "solid"
                             }
                         },
                         {
+                            # Quotes will be a dashed line
                             "selector": '[interaction = "quote"]',
                             "style": {
-                                "line-color": "#FF851B",
-                                "target-arrow-color": "#FF851B"
+                                "line-style": "dashed"
+                            }
+                        },
+                        {
+                            "selector": '[alignment = 0]', 
+                            "style": {
+                                "line-color": "#07C255",
+                                "target-arrow-color": "#07C255"
+                            }
+                        },
+                        {
+                            "selector": '[alignment = 1]', 
+                            "style": {
+                                "line-color": "#8D8D8D", 
+                                "target-arrow-color": "#8D8D8D"
+                            }
+                        },
+                        {
+                            "selector": '[alignment = 2]', 
+                            "style": {
+                                "line-color": "#C52A2A",
+                                "target-arrow-color": "#C52A2A"
                             }
                         }
                     ],
@@ -98,7 +113,9 @@ def layout(**kwargs):
                 "verticalAlign": "top",
                 "paddingLeft": "10px"
             })
-        ])
+        ], style={"display": "block"}),
+
+        html.Div(id="no-graph-message", style={"textAlign": "center"})
     ])
 
 network_callbacks.register_callbacks()

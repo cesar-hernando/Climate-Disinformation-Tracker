@@ -50,7 +50,7 @@ async def main():
     max_keywords = 5  # Maximum number of keywords extracted
     synonyms = True  # Whether to use synonyms or not
     n_keywords_dropped = 1  # No advanced search if n_keywords_dropped = 0
-    excludes = {"nativeretweets", "replies"}
+    excludes = {"nativeretweets"}  
     top_n_tweeters = 3  # Top usernames with more tweets about a topic
 
     mode = 1  # 0 (find source) or 1 (retrieve all)
@@ -102,7 +102,7 @@ async def main():
         run_time = end_time - start_time
         print(f"\nExecution time of the Source Finder: {run_time:.2f} s\n")
     else:
-        initial_date = ""
+        initial_date = "2024-01-01"
         final_date = "2025-10-10"
         filename, tweet_list = await source_finder.find_all(
             claim,
@@ -125,6 +125,5 @@ async def main():
             # Create and run the visualization app
             app = create_app(filename, claim)
             app.run()
-
 
 asyncio.run(main())

@@ -114,7 +114,8 @@ class SourceFinder:
             final_date = date.today().strftime("%Y-%m-%d")
 
         ind_syns = "_with_syns" if synonyms else ""
-        filename = data_dir + "_".join(keywords) + f'_kpc_{self.max_keywords - self.n_keywords_dropped}_{initial_date}_to_{final_date}{ind_syns}.csv' # kpc stands for keywords per clause
+        ind_replies = "_no_replies" if "replies" in self.excludes else ""
+        filename = data_dir + "_".join(keywords) + f'_kpc_{self.max_keywords - self.n_keywords_dropped}_{initial_date}_to_{final_date}{ind_syns}{ind_replies}.csv' # kpc stands for keywords per clause
 
         if os.path.exists(filename):
             print(f"\nFile {filename} already exists.\n")
