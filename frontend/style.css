@@ -47,7 +47,8 @@ form {
 }
 
 input[type="text"],
-input[type="date"] {
+input[type="date"],
+input[type="number"] {
   width: 100%;
   padding: 12px 14px;
   margin-bottom: 15px;
@@ -59,7 +60,8 @@ input[type="date"] {
 }
 
 input[type="text"]:focus,
-input[type="date"]:focus {
+input[type="date"]:focus,
+input[type="number"]:focus {
   outline: none;
   border-color: #3498db;
   box-shadow: 0 0 5px rgba(52,152,219,0.3);
