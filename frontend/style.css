@@ -46,12 +46,12 @@ form {
   flex-direction: column;
 }
 
+/* Input fields */
 input[type="text"],
 input[type="date"],
 input[type="number"] {
   width: 100%;
   padding: 12px 14px;
-  margin-bottom: 15px;
   border: 1px solid #ccc;
   border-radius: 6px;
   font-size: 1rem;
@@ -82,7 +82,6 @@ button {
   border-radius: 6px;
   cursor: pointer;
   transition: background 0.2s;
-  width: 100%; /* full width on mobile */
 }
 
 button:hover {
@@ -198,15 +197,6 @@ select:focus {
   color: #333;
 }
 
-/* #synonym-options {
-  margin-top: 0.75em;
-  padding: 1em;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background: #fafafa;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
-} */
-
 .synonyms {
   display: flex;
   gap: 0.75em;
@@ -220,6 +210,11 @@ select:focus {
 
 /* Keyword blocks */
 .keyword-block {
+  display: flex;
+  gap: 0.75rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   background-color: #fafafa;
   border: 1px solid #d0d7de;
   border-radius: 6px;
@@ -235,7 +230,7 @@ select:focus {
 }
 
 .keyword-block h4 {
-  margin: 0 0 0.5em 0;
+  margin: 0;
   font-size: 1em;
   color: #333;
   font-weight: 600;
@@ -288,10 +283,66 @@ select:focus {
   box-shadow: 0 0 0 2px rgba(0, 119, 204, 0.2);
 }
 
+.custom-synonym-list {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.custom-synonym-input {
+  display: flex;
+  margin-top: 10px;
+  gap: 8px;
+}
+
+.custom-synonym-input input {
+  flex: 1;
+}
+
+.custom-synonym-tag {
+  display: inline-flex;
+  align-items: center;
+  background: #e3f2fd;
+  border: 1px solid #90caf9;
+  border-radius: 6px;
+  padding: 2px 8px;
+  margin: 3px;
+  font-size: 0.9em;
+}
+
+.custom-synonym-tag span {
+  margin-left: 6px;
+  cursor: pointer;
+  color: #e53935;
+  font-weight: bold;
+}
+
+.custom-synonym-input button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.custom-synonym-input-area {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
 /* Responsive adjustments */
 @media (max-width: 600px) {
   .synonym-checkboxes {
     flex-direction: column;
+  }
+
+  button {
+    width: 100%; /* full width on mobile */
   }
 }
 
@@ -343,4 +394,104 @@ select:focus {
   #result {
     font-size: 13px;
   }
+}
+
+.synonym-section {
+  margin-top: 1.5em;
+  padding: 1em;
+  background-color: #fafafa;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.synonym-section h3 {
+  margin-bottom: 0.5em;
+  font-size: 1.2em;
+  color: #333;
+}
+
+.tag-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 0.75em;
+}
+
+.tag {
+  background-color: #e0f2ff;
+  color: #004c91;
+  padding: 6px 12px;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.9em;
+  transition: all 0.3s ease;
+}
+
+.tag:hover {
+  background-color: #cbe7ff;
+}
+
+.remove-tag {
+  margin-left: 8px;
+  color: #555;
+  font-weight: bold;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.remove-tag:hover {
+  color: #c00;
+}
+
+/* Tag animations */
+@keyframes tagFadeIn {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes tagFadeOut {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(0.8); }
+}
+
+.tag-appear {
+  animation: tagFadeIn 0.3s ease;
+}
+
+.tag-remove {
+  animation: tagFadeOut 0.3s ease forwards;
+}
+
+.tag-input-wrapper {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+#synonym-input {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+#synonym-input:focus {
+  border-color: #007acc;
+}
+
+#add-synonym-btn {
+  background-color: #007acc;
+  color: white;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+#add-synonym-btn:hover {
+  background-color: #005fa3;
 }
