@@ -101,7 +101,7 @@
 
     <!-- Synonym selection section -->
     <div id="synonymSection" style="display:none; margin-top: 20px;">
-      <h3>Select Synonyms</h3>
+      <h3>Select or Add Synonyms</h3>
       <div id="synonymList"></div>
       <button id="continueBtn">Continue</button>
     </div>
@@ -183,15 +183,19 @@
       for (const [kw, syns] of Object.entries(synonyms)) {
         const div = document.createElement('div');
         div.classList.add('keyword-block');
+
         div.innerHTML = `
-          <label>${kw}</label>
-          <div class="synonyms">
+          <h4>${kw}</h4>
+          <div class="synonym-checkboxes">
             ${syns.map(s => `
               <label>
                 <input type="checkbox" name="${kw}" value="${s}"> ${s}
               </label>
             `).join('')}
             ${syns.length === 0 ? '<em>No synonyms found</em>' : ''}
+          </div>
+          <div class="custom-synonyms">
+            <input type="text" placeholder="Add your own synonyms (comma-separated)" class="custom-synonym-input" data-keyword="${kw}">
           </div>
         `;
         list.appendChild(div);
@@ -201,9 +205,11 @@
     document.getElementById('continueBtn').addEventListener('click', async () => {
       const selections = {};
       document.querySelectorAll('.keyword-block').forEach(block => {
-        const keyword = block.querySelector('label').textContent;
+        const keyword = block.querySelector('h4').textContent;
         const checked = [...block.querySelectorAll('input[type="checkbox"]:checked')].map(i => i.value);
-        selections[keyword] = [keyword, ...checked];
+        const customInput = block.querySelector('.custom-synonym-input').value.trim();
+        const customSyns = customInput ? customInput.split(',').map(s => s.trim()).filter(Boolean) : [];
+        selections[keyword] = [keyword, ...checked, ...customSyns];
       });
       cachedParams["selected_synonyms"] = selections;
       cachedParams["keywords"] = cachedKeywords;
