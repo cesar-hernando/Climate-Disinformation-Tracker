@@ -179,32 +179,40 @@
             ${syns.map(s => `
               <label><input type="checkbox" name="${kw}" value="${s}"> ${s}</label>
             `).join('')}
+            ${syns.length === 0 ? '<em>No synonyms found</em>' : ''}
             <div class="custom-synonym-list"></div>
           </div>
-          <div class="tag-input-wrapper">
-            <input type="text" placeholder="Add your own synonym and press Enter">
+          <div class="custom-synonym-input-area">
+            <input type="text" placeholder="Add your own synonym...">
+            <button type="button" class="add-synonym-btn">Add</button>
           </div>
         `;
         synonymList.appendChild(block);
 
         const input = block.querySelector('input[type="text"]');
+        const addBtn = block.querySelector('.add-synonym-btn');
         const customList = block.querySelector('.custom-synonym-list');
 
-        // Handle adding/removing tags with animations
+        // Helper function for adding tags (used by Enter and Add button)
+        const addTag = () => {
+          const val = input.value.trim();
+          if (!val) return;
+          const tag = document.createElement('div');
+          tag.classList.add('custom-synonym-tag', 'tag-appear');
+          tag.innerHTML = `${val} <span>&times;</span>`;
+          tag.querySelector('span').addEventListener('click', () => {
+            tag.classList.add('tag-remove');
+            setTimeout(() => tag.remove(), 300);
+          });
+          customList.appendChild(tag);
+          input.value = '';
+        };
+
+        // Handle keyboard input
         input.addEventListener('keydown', (e) => {
           if (e.key === 'Enter' || e.key === ',') {
             e.preventDefault();
-            const val = input.value.trim();
-            if (!val) return;
-            const tag = document.createElement('div');
-            tag.classList.add('custom-synonym-tag', 'tag-appear');
-            tag.innerHTML = `${val} <span>&times;</span>`;
-            tag.querySelector('span').addEventListener('click', () => {
-              tag.classList.add('tag-remove');
-              setTimeout(() => tag.remove(), 300);
-            });
-            customList.appendChild(tag);
-            input.value = '';
+            addTag();
           } else if (e.key === 'Backspace' && input.value === '') {
             const last = customList.lastElementChild;
             if (last) {
@@ -213,8 +221,12 @@
             }
           }
         });
+
+        // Handle button click
+        addBtn.addEventListener('click', addTag);
       }
     }
+
 
     document.getElementById('continueBtn').addEventListener('click', async () => {
       const selections = {};
