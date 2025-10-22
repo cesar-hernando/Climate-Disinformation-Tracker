@@ -173,34 +173,48 @@
       for (const [kw, syns] of Object.entries(synonyms)) {
         const div = document.createElement('div');
         div.classList.add('keyword-block');
-
         div.innerHTML = `
-          <h4>${kw}</h4>
-          <div class="synonym-checkboxes">
+          <label>${kw}</label>
+          <div class="synonyms">
             ${syns.map(s => `
-              <label>
-                <input type="checkbox" name="${kw}" value="${s}"> ${s}
-              </label>
+              <label><input type="checkbox" name="${kw}" value="${s}"> ${s}</label>
             `).join('')}
             ${syns.length === 0 ? '<em>No synonyms found</em>' : ''}
           </div>
-          <div class="custom-synonyms">
-            <input type="text" placeholder="Add your own synonyms (comma-separated)" class="custom-synonym-input" data-keyword="${kw}">
+          <div class="custom-synonym-input">
+            <input type="text" placeholder="Add your own synonym">
+            <button type="button" class="add-syn-btn">Add</button>
           </div>
+          <div class="custom-synonym-list"></div>
         `;
         list.appendChild(div);
+
+        const input = div.querySelector('.custom-synonym-input input');
+        const addBtn = div.querySelector('.add-syn-btn');
+        const customList = div.querySelector('.custom-synonym-list');
+
+        addBtn.addEventListener('click', () => {
+          const val = input.value.trim();
+          if (!val) return;
+          const tag = document.createElement('div');
+          tag.classList.add('custom-synonym-tag');
+          tag.innerHTML = `${val} <span>&times;</span>`;
+          tag.querySelector('span').addEventListener('click', () => tag.remove());
+          customList.appendChild(tag);
+          input.value = '';
+        });
       }
     }
 
     document.getElementById('continueBtn').addEventListener('click', async () => {
       const selections = {};
       document.querySelectorAll('.keyword-block').forEach(block => {
-        const keyword = block.querySelector('h4').textContent;
+        const keyword = block.querySelector('label').textContent;
         const checked = [...block.querySelectorAll('input[type="checkbox"]:checked')].map(i => i.value);
-        const customInput = block.querySelector('.custom-synonym-input').value.trim();
-        const customSyns = customInput ? customInput.split(',').map(s => s.trim()).filter(Boolean) : [];
-        selections[keyword] = [keyword, ...checked, ...customSyns];
+        const custom = [...block.querySelectorAll('.custom-synonym-tag')].map(t => t.textContent.replace('×','').trim());
+        selections[keyword] = [keyword, ...checked, ...custom];
       });
+
       cachedParams["selected_synonyms"] = selections;
       cachedParams["keywords"] = cachedKeywords;
       document.getElementById('synonymSection').style.display = 'none';
