@@ -149,6 +149,9 @@ class SourceFinder:
                 excludes=self.excludes, 
                 verbose=verbose,
                 filename=filename)
+            
+            if tweets_list == "exceeded_length":
+                    return None, None
         
             if tweets_list:
                 print(f"\nScraping completed. Found {len(tweets_list)} tweets.\n")
@@ -236,6 +239,12 @@ class SourceFinder:
                     excludes=self.excludes,
                     save_csv=False
                 )
+
+                if tweets == "exceeded_length":
+                    if earliest_k > 0:
+                        return None, None, None
+                    else:
+                        return None, None
 
                 if not tweets:
                     print("No tweets were found.")
