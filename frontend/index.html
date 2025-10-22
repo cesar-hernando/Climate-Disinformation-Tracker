@@ -59,24 +59,14 @@
             <input type="number" id="max_syns_per_kw" name="max_syns_per_kw" value="2" min="1" max="10">
           </div>
 
-          <label for="domain_index">Domain</label>
-          <select id="domain_index" name="domain_index">
-            <option value="0">https://xcancel.com</option>
-            <option value="1">https://nitter.poast.org</option>
-            <option value="2">https://nitter.privacyredirect.com</option>
-            <option value="3">https://lightbrd.com</option>
-            <option value="4">https://nitter.space</option>
-            <option value="5" selected>https://nitter.tiekoetter.com</option>
-            <option value="6">https://nuku.trabun.org</option>
-            <option value="7">https://nitter.kuuro.net</option>
-            <option value="8">https://worldcorrespondents.com</option>
-          </select>
-
           <label for="max_keywords">Max Keywords</label>
-          <input type="text" id="max_keywords" name="max_keywords" value="5">
+          <input type="number" id="max_keywords" name="max_keywords" value="5">
 
           <label for="n_keywords_dropped">Number of Keywords Dropped</label>
-          <input type="text" id="n_keywords_dropped" name="n_keywords_dropped" value="1">
+          <input type="number" id="n_keywords_dropped" name="n_keywords_dropped" value="1">
+
+          <label for="earliest_k">Earliest K</label>
+          <input type="number" id="earliest_k" name="earliest_k" value="0">
           
           <label>Excludes</label>
           <div id="excludes" class="checkbox-group">
@@ -137,7 +127,6 @@
       const initialDate = document.getElementById('initialDate').value || "";
       const finalDate = document.getElementById('finalDate').value || "";
       const mode = document.querySelector('input[name="mode"]:checked').value;
-      const domain_index = parseInt(document.getElementById('domain_index').value) || 5;
       const max_keywords = parseInt(document.getElementById('max_keywords').value) || 5;
       const n_keywords_dropped = parseInt(document.getElementById('n_keywords_dropped').value) || 1;
       const excludes = Array.from(
@@ -149,8 +138,9 @@
       const top_n_syns = parseInt(document.getElementById('top_n_syns').value);
       const threshold = parseFloat(document.getElementById('threshold').value);
       const max_syns_per_kw = parseInt(document.getElementById('max_syns_per_kw').value);
+      const earliest_k = parseInt(document.getElementById('earliest_k').value);
 
-      cachedParams = { text, initialDate, finalDate, mode, domain_index, max_keywords, n_keywords_dropped, excludes, synonyms };
+      cachedParams = { text, initialDate, finalDate, mode, max_keywords, n_keywords_dropped, excludes, synonyms, max_syns_per_kw, earliest_k };
 
       try {
         if (synonyms) {
@@ -228,8 +218,11 @@
       });
 
       if (response.ok) {
-        const data = await response.json();
+        const result = await response.json();
+        
         if (params.mode === 'find_source') {
+          const data = result[0];
+          const earliest_batch = result[1];
           resultDiv.innerHTML = `
             <div class="result-card">
               <p><strong>User:</strong> ${data.user}</p>
@@ -240,11 +233,30 @@
             </div>
           `;
           analyzeBtn.disabled = false;
+
+          // If earliest_batch is available, show it
+          if (earliest_batch && earliest_batch.length > 0) {
+            const earliestDiv = document.createElement('div');
+            earliestDiv.innerHTML = '<h3>Earliest ' + earliest_k + ' Tweets:</h3>';
+            earliest_batch.forEach(tweet => {
+              const tweetDiv = document.createElement('div');
+              tweetDiv.classList.add('result-card');
+              tweetDiv.innerHTML = `
+                <p><strong>User:</strong> ${tweet.user}</p>
+                <p><strong>Text:</strong> ${tweet.text}</p>
+                <p><strong>Date:</strong> ${new Date(tweet.created_at_datetime).toLocaleString()}</p>
+                <p><strong>Engagement:</strong> 👍 ${tweet.likes } | 🔁 ${tweet.retweets} | 💬 ${tweet.comments} | 🔗 ${tweet.quotes}</p>
+                <p><a href="https://twitter.com${tweet.link}" target="_blank">View on Twitter</a></p>
+              `;
+              earliestDiv.appendChild(tweetDiv);
+            });
+            resultDiv.appendChild(earliestDiv);
+          }
         } else if (params.mode === 'find_all') {
           const dashboardResponse = await fetch('/api/visualization', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ filename: data, claim: params.text })
+            body: JSON.stringify({ filename: result, claim: params.text })
           });
           const dashboardData = await dashboardResponse.json();
           if (dashboardData.redirect_url) {

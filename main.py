@@ -19,6 +19,8 @@ import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
+import contractions
+
 
 ##################################################
 ################ Nitter's domains ################
@@ -44,7 +46,7 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 async def main():
     # Define the parameters of the search
     claim = "Electric vehicles are actually worse for environment than gas cars"
-    domain_index = 5  # Index of the Nitter domain to use, change if one domain is down
+    claim = contractions.fix(claim)
     max_keywords = 5  # Maximum number of keywords extracted
     synonyms = True  # Whether to use synonyms or not
     n_keywords_dropped = 1  # No advanced search if n_keywords_dropped = 0
@@ -66,7 +68,7 @@ async def main():
     )
 
     if mode == 0:
-        initial_date = "2006-03-21"
+        initial_date = "2006-03-21" # yyyy-mm-dd
         final_date = date.today().strftime("%Y-%m-%d")
         step = 1
         by_month = False  # True or False
