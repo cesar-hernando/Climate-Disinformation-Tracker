@@ -144,9 +144,14 @@ class ScraperNitter:
         soup = BeautifulSoup(html_content, "html.parser")
         tweets = []
 
-        # if timeline-end for if tweets where found or timeline-none for if no tweets where found
+        # If timeline-end for if tweets where found or timeline-none for if no tweets where found
         if soup.find("h2", class_="timeline-end") or soup.find("h2", class_="timeline-none"):
             return None, "finished"
+        
+        # If the input is too long, return no tweets and an error message
+        error_div = soup.find("div", class_=lambda c: c and "error-panel" in c)
+        if error_div and "search input too long" in error_div.get_text(strip=True).lower():
+            return None, "exceeded_length"
 
         for tweet in soup.find_all("div", class_="timeline-item"):
             tweet_data = {}
@@ -230,11 +235,17 @@ class ScraperNitter:
             if verbose:
                 print(f"Fetching tweets from: {self.domain + url + cursor}")
             html_content, status_code = await self.__fetch_tweets(url + cursor)
+
             if status_code == 200:
                 tweets, new_cursor = self.__parse_tweets(html_content)
                 all_tweets.extend(tweets if tweets else [])
                 if new_cursor == "finished": # No more tweets to fetch
                     return all_tweets
+                
+                if new_cursor == "exceeded_length": # Query length exceeded
+                    print("\nQuery length exceeded the limit for Nitter (500).")
+                    print("\nNumber of characters in the query: ", len(query))
+                    return "exceeded_length"
                 
                 if len(tweets) == 0: # No tweets found on this page, stop the loop
                     self.__next_domain() # Switch to the next domain if no tweets found
@@ -247,6 +258,12 @@ class ScraperNitter:
                 if new_cursor:
                     cursor = new_cursor
             else:
+                _, new_cursor = self.__parse_tweets(html_content)  # Force switch to next domain
+                if new_cursor == "exceeded_length": # Query length exceeded
+                    print("\nQuery length exceeded the limit for Nitter (500).")
+                    print("\nNumber of characters in the query: ", len(query))
+                    return "exceeded_length"
+                
                 self.__next_domain() # Switch to the next domain if error occurs
                 print(f"Switching to next domain: {self.domain}")
             

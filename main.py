@@ -50,7 +50,8 @@ async def main():
     max_keywords = 5  # Maximum number of keywords extracted
     synonyms = True  # Whether to use synonyms or not
     n_keywords_dropped = 1  # No advanced search if n_keywords_dropped = 0
-    excludes = {"nativeretweets", "replies"}  # Remove replies from here if you want a network analysis
+    excludes = {"nativeretweets", "replies"}
+    earliest_k = 10  # Number of earliest aligned tweets to store
     top_n_tweeters = 3  # Top usernames with more tweets about a topic
 
     mode = 0  # 0 (find source) or 1 (retrieve all)
@@ -86,7 +87,7 @@ async def main():
                 dev_mode=True,
             )
         else:
-            oldest_aligned_tweet, _, _ = await source_finder.find_source(
+            oldest_aligned_tweet, _, earliest_buf = await source_finder.find_source(
                 claim,
                 initial_date,
                 final_date,
@@ -97,7 +98,7 @@ async def main():
                 threshold=threshold,
                 max_syns_per_kw=max_syns_per_kw,
                 dev_mode=True,
-                earliest_k=1
+                earliest_k=earliest_k,
             )
         end_time = time.time()
         run_time = end_time - start_time

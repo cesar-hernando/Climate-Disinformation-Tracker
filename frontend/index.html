@@ -9,6 +9,7 @@
 <body>
   <div class="container">
     <h2>Source Tracker</h2>
+
     <form id="detectForm">
       <input type="text" id="textInput" placeholder="Enter text to analyze..." required>
 
@@ -37,12 +38,11 @@
       <div class="advanced-settings">
         <button type="button" id="toggleAdvanced" class="toggle-btn">⚙️ Advanced Settings</button>
         <div id="advancedContent" class="advanced-content" hidden>
-          <!-- Synonym Options -->
-          <label for="use-synonyms">
+          <label>
             <input type="checkbox" id="use-synonyms" name="synonyms"> Use Synonyms
           </label>
 
-          <div id="synonym-options" style="display: none;">
+          <div id="synonym-options" style="display:none;">
             <label for="model_name">Model:</label>
             <select id="model_name" name="model_name">
               <option value="en_core_web_md" selected>en_core_web_md</option>
@@ -50,24 +50,24 @@
             </select>
 
             <label for="top_n_syns">Top N Synonyms:</label>
-            <input type="number" id="top_n_syns" name="top_n_syns" value="4" min="1" max="10">
+            <input type="number" id="top_n_syns" value="4" min="1" max="10">
 
             <label for="threshold">Similarity Threshold:</label>
-            <input type="number" id="threshold" name="threshold" value="0.1" step="0.05" min="0" max="1">
+            <input type="number" id="threshold" value="0.1" step="0.05" min="0" max="1">
 
             <label for="max_syns_per_kw">Max Synonyms per Keyword:</label>
-            <input type="number" id="max_syns_per_kw" name="max_syns_per_kw" value="2" min="1" max="10">
+            <input type="number" id="max_syns_per_kw" value="2" min="1" max="10">
           </div>
 
           <label for="max_keywords">Max Keywords</label>
-          <input type="number" id="max_keywords" name="max_keywords" value="5">
+          <input type="number" id="max_keywords" value="5">
 
           <label for="n_keywords_dropped">Number of Keywords Dropped</label>
-          <input type="number" id="n_keywords_dropped" name="n_keywords_dropped" value="1">
+          <input type="number" id="n_keywords_dropped" value="1">
 
           <label for="earliest_k">Earliest K</label>
-          <input type="number" id="earliest_k" name="earliest_k" value="0">
-          
+          <input type="number" id="earliest_k" value="0">
+
           <label>Excludes</label>
           <div id="excludes" class="checkbox-group">
             <label><input type="checkbox" value="nativeretweets" checked> nativeretweets</label>
@@ -89,26 +89,26 @@
       <button type="submit" id="analyzeBtn">Analyze</button>
     </form>
 
-    <!-- Synonym selection section -->
-    <div id="synonymSection" style="display:none; margin-top: 20px;">
+    <!-- Dynamic synonym section -->
+    <div id="synonymSection" style="display:none;">
       <h3>Select Synonyms</h3>
       <div id="synonymList"></div>
-      <button id="continueBtn">Continue</button>
+      <button id="continueBtn" type="button">Continue</button>
     </div>
 
-    <div id="result" style="display: none;"></div>
+    <div id="result" style="display:none;"></div>
   </div>
 
   <script>
     const resultDiv = document.getElementById('result');
     const analyzeBtn = document.getElementById('analyzeBtn');
+    const synonymSection = document.getElementById('synonymSection');
+    const synonymList = document.getElementById('synonymList');
 
-    // Toggle advanced settings
     document.getElementById('toggleAdvanced').addEventListener('click', () => {
       document.getElementById('advancedContent').classList.toggle('show');
     });
 
-    // Toggle synonym settings visibility
     document.getElementById('use-synonyms').addEventListener('change', (e) => {
       document.getElementById('synonym-options').style.display = e.target.checked ? 'block' : 'none';
     });
@@ -123,81 +123,123 @@
       resultDiv.innerHTML = '<div class="spinner"></div> Analyzing...';
       analyzeBtn.disabled = true;
 
-      const text = document.getElementById('textInput').value;
-      const initialDate = document.getElementById('initialDate').value || "";
-      const finalDate = document.getElementById('finalDate').value || "";
-      const mode = document.querySelector('input[name="mode"]:checked').value;
-      const max_keywords = parseInt(document.getElementById('max_keywords').value) || 5;
-      const n_keywords_dropped = parseInt(document.getElementById('n_keywords_dropped').value) || 1;
-      const excludes = Array.from(
-        document.querySelectorAll('#excludes input[type="checkbox"]:checked')
-      ).map(cb => cb.value);
+      const params = {
+        text: document.getElementById('textInput').value,
+        initialDate: document.getElementById('initialDate').value || "",
+        finalDate: document.getElementById('finalDate').value || "",
+        mode: document.querySelector('input[name="mode"]:checked').value,
+        max_keywords: parseInt(document.getElementById('max_keywords').value) || 5,
+        n_keywords_dropped: parseInt(document.getElementById('n_keywords_dropped').value) || 1,
+        excludes: Array.from(document.querySelectorAll('#excludes input:checked')).map(cb => cb.value),
+        synonyms: document.getElementById('use-synonyms').checked,
+        model_name: document.getElementById('model_name').value,
+        top_n_syns: parseInt(document.getElementById('top_n_syns').value),
+        threshold: parseFloat(document.getElementById('threshold').value),
+        max_syns_per_kw: parseInt(document.getElementById('max_syns_per_kw').value),
+        earliest_k: parseInt(document.getElementById('earliest_k').value)
+      };
 
-      const synonyms = document.getElementById('use-synonyms').checked;
-      const model_name = document.getElementById('model_name').value;
-      const top_n_syns = parseInt(document.getElementById('top_n_syns').value);
-      const threshold = parseFloat(document.getElementById('threshold').value);
-      const max_syns_per_kw = parseInt(document.getElementById('max_syns_per_kw').value);
-      const earliest_k = parseInt(document.getElementById('earliest_k').value);
-
-      cachedParams = { text, initialDate, finalDate, mode, max_keywords, n_keywords_dropped, excludes, synonyms, max_syns_per_kw, earliest_k };
+      cachedParams = params;
 
       try {
-        if (synonyms) {
-          // Step 1: Get synonym suggestions
+        if (params.synonyms) {
           const res = await fetch('http://127.0.0.1:8000/api/synonyms', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text, model_name, top_n_syns, threshold })
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+              text: params.text,
+              model_name: params.model_name,
+              top_n_syns: params.top_n_syns,
+              threshold: params.threshold
+            })
           });
           const data = await res.json();
           cachedSynonyms = data.synonyms;
-          cachedKeywords = data.keywords
+          cachedKeywords = data.keywords;
           displaySynonymOptions(cachedSynonyms);
         } else {
-          // Normal pipeline
-          await performAnalysis(cachedParams);
+          await performAnalysis(params);
         }
       } catch (err) {
         resultDiv.textContent = 'Network error.';
-      } 
+      }
     });
 
     function displaySynonymOptions(synonyms) {
-      const section = document.getElementById('synonymSection');
-      const list = document.getElementById('synonymList');
-      section.style.display = 'block';
+      synonymList.innerHTML = '';
+      synonymSection.style.display = 'block';
       resultDiv.style.display = 'none';
-      list.innerHTML = '';
 
       for (const [kw, syns] of Object.entries(synonyms)) {
-        const div = document.createElement('div');
-        div.classList.add('keyword-block');
-        div.innerHTML = `
-          <label>${kw}</label>
+        const block = document.createElement('div');
+        block.classList.add('keyword-block');
+        block.innerHTML = `
+          <h4>${kw}</h4>
           <div class="synonyms">
             ${syns.map(s => `
-              <label>
-                <input type="checkbox" name="${kw}" value="${s}"> ${s}
-              </label>
+              <label><input type="checkbox" name="${kw}" value="${s}"> ${s}</label>
             `).join('')}
             ${syns.length === 0 ? '<em>No synonyms found</em>' : ''}
+            <div class="custom-synonym-list"></div>
+          </div>
+          <div class="custom-synonym-input-area">
+            <input type="text" placeholder="Add your own synonym...">
+            <button type="button" class="add-synonym-btn">Add</button>
           </div>
         `;
-        list.appendChild(div);
+        synonymList.appendChild(block);
+
+        const input = block.querySelector('input[type="text"]');
+        const addBtn = block.querySelector('.add-synonym-btn');
+        const customList = block.querySelector('.custom-synonym-list');
+
+        // Helper function for adding tags (used by Enter and Add button)
+        const addTag = () => {
+          const val = input.value.trim();
+          if (!val) return;
+          const tag = document.createElement('div');
+          tag.classList.add('custom-synonym-tag', 'tag-appear');
+          tag.innerHTML = `${val} <span>&times;</span>`;
+          tag.querySelector('span').addEventListener('click', () => {
+            tag.classList.add('tag-remove');
+            setTimeout(() => tag.remove(), 300);
+          });
+          customList.appendChild(tag);
+          input.value = '';
+        };
+
+        // Handle keyboard input
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ',') {
+            e.preventDefault();
+            addTag();
+          } else if (e.key === 'Backspace' && input.value === '') {
+            const last = customList.lastElementChild;
+            if (last) {
+              last.classList.add('tag-remove');
+              setTimeout(() => last.remove(), 300);
+            }
+          }
+        });
+
+        // Handle button click
+        addBtn.addEventListener('click', addTag);
       }
     }
+
 
     document.getElementById('continueBtn').addEventListener('click', async () => {
       const selections = {};
       document.querySelectorAll('.keyword-block').forEach(block => {
-        const keyword = block.querySelector('label').textContent;
+        const kw = block.querySelector('h4').textContent;
         const checked = [...block.querySelectorAll('input[type="checkbox"]:checked')].map(i => i.value);
-        selections[keyword] = [keyword, ...checked];
+        const custom = [...block.querySelectorAll('.custom-synonym-tag')].map(t => t.textContent.replace('×', '').trim());
+        selections[kw] = [kw, ...checked, ...custom];
       });
+
       cachedParams["selected_synonyms"] = selections;
       cachedParams["keywords"] = cachedKeywords;
-      document.getElementById('synonymSection').style.display = 'none';
+      synonymSection.style.display = 'none';
       await performAnalysis(cachedParams);
     });
 
@@ -207,59 +249,18 @@
 
       const response = await fetch('http://127.0.0.1:8000/api/analyze', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(params)
       });
 
       if (response.ok) {
         const result = await response.json();
-        
-        if (params.mode === 'find_source') {
-          const data = result[0];
-          const earliest_batch = result[1];
-          resultDiv.innerHTML = `
-            <div class="result-card">
-              <p><strong>User:</strong> ${data.user}</p>
-              <p><strong>Text:</strong> ${data.text}</p>
-              <p><strong>Date:</strong> ${new Date(data.created_at_datetime).toLocaleString()}</p>
-              <p><strong>Engagement:</strong> 👍 ${data.likes} | 🔁 ${data.retweets} | 💬 ${data.comments} | 🔗 ${data.quotes}</p>
-              <p><a href="https://twitter.com${data.link}" target="_blank">View on Twitter</a></p>
-            </div>
-          `;
-          analyzeBtn.disabled = false;
-
-          // If earliest_batch is available, show it
-          if (earliest_batch && earliest_batch.length > 0) {
-            const earliestDiv = document.createElement('div');
-            earliestDiv.innerHTML = '<h3>Earliest ' + earliest_k + ' Tweets:</h3>';
-            earliest_batch.forEach(tweet => {
-              const tweetDiv = document.createElement('div');
-              tweetDiv.classList.add('result-card');
-              tweetDiv.innerHTML = `
-                <p><strong>User:</strong> ${tweet.user}</p>
-                <p><strong>Text:</strong> ${tweet.text}</p>
-                <p><strong>Date:</strong> ${new Date(tweet.created_at_datetime).toLocaleString()}</p>
-                <p><strong>Engagement:</strong> 👍 ${tweet.likes } | 🔁 ${tweet.retweets} | 💬 ${tweet.comments} | 🔗 ${tweet.quotes}</p>
-                <p><a href="https://twitter.com${tweet.link}" target="_blank">View on Twitter</a></p>
-              `;
-              earliestDiv.appendChild(tweetDiv);
-            });
-            resultDiv.appendChild(earliestDiv);
-          }
-        } else if (params.mode === 'find_all') {
-          const dashboardResponse = await fetch('/api/visualization', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ filename: result, claim: params.text })
-          });
-          const dashboardData = await dashboardResponse.json();
-          if (dashboardData.redirect_url) {
-            window.location.href = dashboardData.redirect_url;
-          }
-        }
+        // handle display as before...
+        resultDiv.textContent = JSON.stringify(result, null, 2);
       } else {
         resultDiv.textContent = 'Error analyzing text.';
       }
+      analyzeBtn.disabled = false;
     }
   </script>
 </body>
