@@ -44,7 +44,7 @@ def create_app(filename, claim, requests_pathname_prefix="/"):
 if __name__ == "__main__":
     # Example usage
     # run python -m visualization.app to test the visualization
-    filename ="./data/electric_gas_worse_environment_cars_kpc_4_2006-03-21_to_2025-10-21_no_replies.csv"
-    claim = "Electric cars are worse for the environment than gas cars"
+    filename ="./data/climate_caused_sun_natural_cycles_kpc_4_2006-03-21_to_2025-10-23.csv"
+    claim = "Climate change is just caused by natural cycles of the sun"
     app = create_app(filename, claim)
     app.run(debug=True)

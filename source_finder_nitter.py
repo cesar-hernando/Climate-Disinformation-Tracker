@@ -151,7 +151,7 @@ class SourceFinder:
                 filename=filename)
             
             if tweets_list == "exceeded_length":
-                    return None, None
+                return None, None
         
             if tweets_list:
                 print(f"\nScraping completed. Found {len(tweets_list)} tweets.\n")

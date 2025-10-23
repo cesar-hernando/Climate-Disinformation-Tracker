@@ -4,9 +4,9 @@ import torch
 
 
 class AlignmentModel:
-    def __init__(self, batch_size=16, model_name="MoritzLaurer/mDeBERTa-v3-base-mnli-xnli"):
+    def __init__(self, batch_size=4, model_name="MoritzLaurer/mDeBERTa-v3-base-mnli-xnli"):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.batch_size = 64 if torch.cuda.is_available() else batch_size
+        self.batch_size = 16 if torch.cuda.is_available() else batch_size
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.model = AutoModelForSequenceClassification.from_pretrained(model_name).to(self.device)
 
