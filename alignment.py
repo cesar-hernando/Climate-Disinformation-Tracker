@@ -88,8 +88,8 @@ if __name__ == "__main__":
     claim = "Climate change is just caused by natural cycles of the sun"
     tweets = [
         {"text": "The sun's cycles are responsible for climate change.", "created_at_datetime": "2020-01-01"},
-        {"text": "Climate change is just caused by natural cycles of the sun.", "created_at_datetime": "2019-01-01"},
-        {"text": "Climate change is a complex issue with multiple factors.", "created_at_datetime": "2021-01-01"},
+        {"text": "Climate change is just caused by natural cycles of the sun.", "created_at_datetime": "2019-07-01"},
+        {"text": "Climate change is a complex issue with multiple factors.", "created_at_datetime": "2019-01-01"},
     ]
     print(model.device)
     print(model.batch_predict(claim, tweets, verbose=True))

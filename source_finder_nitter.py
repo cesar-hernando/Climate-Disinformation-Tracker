@@ -214,8 +214,6 @@ class SourceFinder:
         source_tweet = None
         source_aligned_batch = None  
 
-
-
         async with ScraperNitter() as scraper:
             initial_year = int(initial_date[:4])
             final_year   = int(final_date[:4])
