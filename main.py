@@ -45,16 +45,16 @@ import contractions
 
 async def main():
     # Define the parameters of the search
-    claim = "Electric vehicles are actually worse for environment than gas cars"
+    claim = "Global warming is a hoax. In the past it was much hotter than today."
     claim = contractions.fix(claim)
     max_keywords = 5  # Maximum number of keywords extracted
-    synonyms = True  # Whether to use synonyms or not
+    synonyms = False  # Whether to use synonyms or not
     n_keywords_dropped = 1  # No advanced search if n_keywords_dropped = 0
-    excludes = {"nativeretweets", "replies"}
+    excludes = {"nativeretweets", "replies"}  # Remove replies from here if you want a network analysis (will take longer)
     earliest_k = 10  # Number of earliest aligned tweets to store
     top_n_tweeters = 3  # Top usernames with more tweets about a topic
 
-    mode = 1  # 0 (find source) or 1 (retrieve all)
+    mode = 0  # 0 (find source) or 1 (retrieve all)
 
     model_name = "en_core_web_md"  # Spacy model for contextual synonyms
     top_n_syns = 5  # Number of contextual synonyms to suggest per keyword
@@ -69,7 +69,7 @@ async def main():
     )
 
     if mode == 0:
-        initial_date = "2006-03-21" # yyyy-mm-dd
+        initial_date = "2025-01-07" # yyyy-mm-dd
         final_date = date.today().strftime("%Y-%m-%d")
         step = 1
         by_month = False  # True or False
@@ -104,7 +104,7 @@ async def main():
         run_time = end_time - start_time
         print(f"\nExecution time of the Source Finder: {run_time:.2f} s\n")
     else:
-        initial_date = ""
+        initial_date = "2025-01-01"
         final_date = "2025-10-10"
         filename, tweet_list = await source_finder.find_all(
             claim,
@@ -127,6 +127,5 @@ async def main():
             # Create and run the visualization app
             app = create_app(filename, claim)
             app.run()
-
 
 asyncio.run(main())

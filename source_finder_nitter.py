@@ -30,11 +30,10 @@ from alignment import AlignmentModel
 from query_builder_synonyms import SynonymQueryBuilder
 
 class SourceFinder:
-    def __init__(self, max_keywords=5, n_keywords_dropped=2, excludes={"nativeretweets", "replies"}, batch_size=4):
+    def __init__(self, max_keywords=5, n_keywords_dropped=2, excludes={"nativeretweets", "replies"}):
         self.max_keywords = max_keywords # Maximum number of keywords extracted by KeyBert
         self.n_keywords_dropped = n_keywords_dropped # Number of keywords dropped per clause
         self.excludes = excludes
-        self.batch_size = batch_size
     
 
     @staticmethod
@@ -79,7 +78,7 @@ class SourceFinder:
         """
         alignment_model = AlignmentModel()
         print(f"Predicting alignment for {len(tweets_list)} tweets...")
-        alignment_list = alignment_model.batch_predict(claim, tweets_list, batch_size=self.batch_size)
+        alignment_list = alignment_model.batch_predict(claim, tweets_list)
 
         if not tweets_list or not alignment_list or len(tweets_list) != len(alignment_list):
             print("No tweets or alignment data to save, or lengths do not match.")
@@ -133,8 +132,9 @@ class SourceFinder:
         if final_date == "":
             final_date = date.today().strftime("%Y-%m-%d")
 
-        ind_syns = "with_syns" if synonyms else ""
-        filename = data_dir + "_".join(keywords) + f'_kpc_{self.max_keywords - self.n_keywords_dropped}_{initial_date}_to_{final_date}_{ind_syns}.csv' # kpc stands for keywords per clause
+        ind_syns = "_with_syns" if synonyms else ""
+        ind_replies = "_no_replies" if "replies" in self.excludes else ""
+        filename = data_dir + "_".join(keywords) + f'_kpc_{self.max_keywords - self.n_keywords_dropped}_{initial_date}_to_{final_date}{ind_syns}{ind_replies}.csv' # kpc stands for keywords per clause
 
         if os.path.exists(filename):
             print(f"\nFile {filename} already exists.\n")
@@ -151,7 +151,7 @@ class SourceFinder:
                 filename=filename)
             
             if tweets_list == "exceeded_length":
-                    return None, None
+                return None, None
         
             if tweets_list:
                 print(f"\nScraping completed. Found {len(tweets_list)} tweets.\n")
@@ -214,8 +214,6 @@ class SourceFinder:
         source_tweet = None
         source_aligned_batch = None  
 
-
-
         async with ScraperNitter() as scraper:
             initial_year = int(initial_date[:4])
             final_year   = int(final_date[:4])
@@ -264,7 +262,7 @@ class SourceFinder:
                     take = tweets[:need]
 
                     # label whats been taken
-                    labels = alignment_model.batch_predict(claim, take, batch_size=self.batch_size)
+                    labels = alignment_model.batch_predict(claim, take)
                     for tw, lab in zip(take, labels):
                         tw["alignment"] = lab
 
@@ -285,8 +283,7 @@ class SourceFinder:
                     print("None of the earliest slice entails (or buffer not full yet). Checking alignment on full batch...")
                     aligned_tweets = alignment_model.batch_filter_tweets(
                         claim,
-                        tweets,
-                        batch_size=self.batch_size
+                        tweets
                     )
                     if aligned_tweets:
                         found_here = alignment_model.find_first(aligned_tweets)
@@ -417,8 +414,7 @@ class SourceFinder:
                     # Check alignment immediately
                     aligned_tweets = alignment_model.batch_filter_tweets(
                         claim,
-                        month_tweets,
-                        batch_size=self.batch_size
+                        month_tweets
                     )
 
                     if aligned_tweets:
@@ -482,15 +478,13 @@ if __name__ == "__main__":
         max_keywords = 5
         n_keywords_dropped = 1
         excludes = {"nativeretweets", "replies"}
-        batch_size = 4
         mode = 0  # 0=find source (+ print earliest list), 1=retrieve all
 
         start_time = time.time()
         source_finder = SourceFinder(
             max_keywords=max_keywords,
             n_keywords_dropped=n_keywords_dropped,
-            excludes=excludes,
-            batch_size=batch_size
+            excludes=excludes
         )
 
         if mode == 0:

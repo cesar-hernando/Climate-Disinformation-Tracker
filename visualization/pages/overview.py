@@ -1,21 +1,11 @@
-from dash import dcc, html
+from dash import dcc, html, register_page
 import pandas as pd
+from visualization.callbacks import callbacks
 
-def create_layout(df: pd.DataFrame, claim: str):
-    labels = {
-        'Entailment': 0,
-        'Neutral': 1,
-        'Contradiction': 2
-    }
+register_page(__name__, path='/', name='Overview')
 
+def layout(**kwargs):
     return html.Div([
-        html.H1("Source Tracker", style={"textAlign": "center"}),
-
-        # Store the dynamic data
-        dcc.Store(id='data-store', data=df.to_dict('records')),
-
-        html.H2(f"Claim: {claim}", style={"textAlign": "center", "fontSize": "20px", "fontWeight": "normal", "marginTop": "0"}),
-
         html.Div(
             [
                 html.H4(
@@ -26,16 +16,6 @@ def create_layout(df: pd.DataFrame, claim: str):
             ],
             style={"marginTop": "25px", "marginBottom": "15px"},
         ),
-
-        html.Div([
-            html.Span("Show tweets:"),
-            dcc.Checklist(
-                id="alignment-checklist",
-                options=[{"label": label, "value": labels[label]} for label in labels.keys()],
-                value=list(labels.values()),  # default: all
-                style={"marginTop": "4px"}
-            )
-        ], className="alignment-filter"),
 
         # Bubble chart row: Bubble Chart + Selected Tweet
         html.Div([
@@ -93,3 +73,5 @@ def create_layout(df: pd.DataFrame, claim: str):
         ], style={"display": "flex", "flexDirection": "column", "margin": "10px 0"}),
 
     ])
+
+callbacks.register_callbacks()

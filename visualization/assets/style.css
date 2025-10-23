@@ -2,6 +2,8 @@ body {
     font-family: 'Roboto', sans-serif;
     font-size: 16px;
     color: #333333;
+    margin: 0;
+    padding: 0;
 }
 
 h1 {
@@ -60,6 +62,28 @@ a {
   color: #777;
 }
 
+.replying-to, .quoting {
+  display: flex;
+  flex-wrap: wrap;        /* <-- this allows wrapping */
+  align-items: center;
+  gap: 4px;               /* spacing between usernames */
+  font-size: 12px;
+  color: #555;
+  margin-bottom: 4px;
+  max-width: 100%;        /* keeps it within the card */
+  word-break: break-word; /* ensures no overflow */
+}
+
+.reply-tag, .quote-tag {
+  color: #1DA1F2;
+  margin-left: 3px;
+  text-decoration: none;
+}
+
+.reply-tag:hover, .quote-tag:hover {
+  text-decoration: underline;
+}
+
 /* Tweet content */
 .tweet-content {
   font-size: 14px;
@@ -73,11 +97,7 @@ a {
     color: #555;
 }
 
-.tweet-comments {
-    margin-right: 15px;
-}
-
-.tweet-retweets {
+.tweet-stats-middle {
     margin-right: 15px;
 }
 
@@ -111,48 +131,4 @@ a {
     box-shadow: 0 2px 6px rgba(29, 161, 242, 0.3);
 }
 
-.alignment-filter {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: #ffffff;
-    border: 1px solid #e0e0e0;
-    padding: 12px 16px;
-    border-radius: 12px;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-    z-index: 9999;
-    cursor: grab;
-    transition: box-shadow 0.2s ease, transform 0.2s ease;
-    font-family: 'Inter', 'Segoe UI', sans-serif;
-}
 
-.alignment-filter:active {
-    cursor: grabbing;
-    transform: scale(0.98);
-}
-
-.alignment-filter:hover {
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-}
-
-.alignment-filter span {
-    font-weight: 500;
-    color: #1DA1F2;
-    font-size: 15px;
-    display: block;
-    margin-bottom: 6px;
-}
-
-.alignment-filter label {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 14px;
-    color: #333;
-    margin-top: 4px;
-}
-
-.alignment-filter input[type="checkbox"] {
-    accent-color: #1DA1F2;
-    cursor: pointer;
-}
