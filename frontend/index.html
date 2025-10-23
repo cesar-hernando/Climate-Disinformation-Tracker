@@ -128,7 +128,7 @@
     document.getElementById('detectForm').addEventListener('submit', async function(e) {
       e.preventDefault();
       resultDiv.style.display = 'flex';
-      resultDiv.innerHTML = '<div class="spinner"></div> Analyzing...';
+      resultDiv.innerHTML = '<div class="spinner_container"><div class="spinner"></div> Running analysis...</div>';
       analyzeBtn.disabled = true;
 
       const params = {
@@ -253,7 +253,7 @@
 
     async function performAnalysis(params) {
       resultDiv.style.display = 'flex';
-      resultDiv.innerHTML = '<div class="spinner"></div> Running analysis...';
+      resultDiv.innerHTML = '<div class="spinner_container"><div class="spinner"></div> Running analysis...</div>';
 
       const response = await fetch('http://127.0.0.1:8000/api/analyze', {
         method: 'POST',

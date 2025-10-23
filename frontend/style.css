@@ -108,6 +108,7 @@ button:disabled {
   align-items: center;
   gap: 10px;
   word-wrap: break-word;
+  justify-content: center;
 }
 
 /* Spinner styles */
@@ -118,6 +119,13 @@ button:disabled {
   border-top: 2px solid #3498db;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
+}
+
+.spinner_container {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    align-items: center;
 }
 
 /* Toggle button styling */
