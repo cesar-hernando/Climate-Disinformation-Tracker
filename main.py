@@ -50,10 +50,10 @@ async def main():
     max_keywords = 5  # Maximum number of keywords extracted
     synonyms = True  # Whether to use synonyms or not
     n_keywords_dropped = 1  # No advanced search if n_keywords_dropped = 0
-    excludes = {"nativeretweets"}  
+    excludes = {"nativeretweets", "replies"}  # Remove replies from here if you want a network analysis
     top_n_tweeters = 3  # Top usernames with more tweets about a topic
 
-    mode = 1  # 0 (find source) or 1 (retrieve all)
+    mode = 0  # 0 (find source) or 1 (retrieve all)
 
     model_name = "en_core_web_md"  # Spacy model for contextual synonyms
     top_n_syns = 5  # Number of contextual synonyms to suggest per keyword
@@ -86,7 +86,7 @@ async def main():
                 dev_mode=True,
             )
         else:
-            oldest_aligned_tweet, _ = await source_finder.find_source(
+            oldest_aligned_tweet, _, _ = await source_finder.find_source(
                 claim,
                 initial_date,
                 final_date,
@@ -97,6 +97,7 @@ async def main():
                 threshold=threshold,
                 max_syns_per_kw=max_syns_per_kw,
                 dev_mode=True,
+                earliest_k=1
             )
         end_time = time.time()
         run_time = end_time - start_time

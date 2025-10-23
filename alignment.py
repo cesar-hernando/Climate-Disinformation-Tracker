@@ -37,6 +37,9 @@ class AlignmentModel:
         Compare many tweets against a claim in batches.
         Returns list of label IDs in same order as input tweets.
         """
+        if verbose:
+            print(f'Batch comparing {len(tweets)} tweets against "{original_claim}" using {self.device}:')
+            
         results = []
         for i in range(0, len(tweets), self.batch_size):
             batch_texts = [t['text'] for t in tweets[i:i+self.batch_size]]
@@ -89,5 +92,4 @@ if __name__ == "__main__":
         {"text": "Climate change is a complex issue with multiple factors.", "created_at_datetime": "2021-01-01"},
     ]
     print(model.device)
-    print(torch.__version__)
-    # print(model.batch_predict(claim, tweets, verbose=True))
+    print(model.batch_predict(claim, tweets, verbose=True))

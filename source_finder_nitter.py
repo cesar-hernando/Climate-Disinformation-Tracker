@@ -255,7 +255,7 @@ class SourceFinder:
                     take = tweets[:need]
 
                     # label whats been taken
-                    labels = alignment_model.batch_predict(claim, take, batch_size=self.batch_size)
+                    labels = alignment_model.batch_predict(claim, take)
                     for tw, lab in zip(take, labels):
                         tw["alignment"] = lab
 
@@ -276,8 +276,7 @@ class SourceFinder:
                     print("None of the earliest slice entails (or buffer not full yet). Checking alignment on full batch...")
                     aligned_tweets = alignment_model.batch_filter_tweets(
                         claim,
-                        tweets,
-                        batch_size=self.batch_size
+                        tweets
                     )
                     if aligned_tweets:
                         found_here = alignment_model.find_first(aligned_tweets)
@@ -472,15 +471,13 @@ if __name__ == "__main__":
         max_keywords = 5
         n_keywords_dropped = 1
         excludes = {"nativeretweets", "replies"}
-        batch_size = 4
         mode = 0  # 0=find source (+ print earliest list), 1=retrieve all
 
         start_time = time.time()
         source_finder = SourceFinder(
             max_keywords=max_keywords,
             n_keywords_dropped=n_keywords_dropped,
-            excludes=excludes,
-            batch_size=batch_size
+            excludes=excludes
         )
 
         if mode == 0:
