@@ -50,7 +50,7 @@ async def main():
     max_keywords = 5  # Maximum number of keywords extracted
     synonyms = False  # Whether to use synonyms or not
     n_keywords_dropped = 1  # No advanced search if n_keywords_dropped = 0
-    excludes = {"nativeretweets", "replies"}  # Remove replies from here if you want a network analysis (will take longer)
+    excludes = {"nativeretweets"}  # Remove replies from here if you want a network analysis (will take longer)
     earliest_k = 10  # Number of earliest aligned tweets to store
     top_n_tweeters = 3  # Top usernames with more tweets about a topic
 

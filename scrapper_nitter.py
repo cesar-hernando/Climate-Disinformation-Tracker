@@ -155,39 +155,41 @@ class ScraperNitter:
 
         for tweet in soup.find_all("div", class_="timeline-item"):
             tweet_data = {}
-            username = tweet.find("a", class_="username")
-            tweet_data["user"] = username.text.strip() if username else ""
+            tweet_body = tweet.find("div", class_="tweet-body")
+            if tweet_body:
+                username = tweet_body.find("a", class_="username")
+                tweet_data["user"] = username.text.strip() if username else ""
 
-            content = tweet.find("div", class_="tweet-content")
-            content = content.text.strip().replace("\n", "\\n") if content else ""
-            tweet_data["text"] = f'"{content}"' if content else ""  # Wrap text in quotes to handle commmas in CSV
+                content = tweet_body.find("div", class_="tweet-content")
+                content = content.text.strip().replace("\n", "\\n") if content else ""
+                tweet_data["text"] = f'"{content}"' if content else ""  # Wrap text in quotes to handle commmas in CSV
 
-            timestamp = tweet.find("span", class_="tweet-date")
-            tweet_data["created_at_datetime"] = ts_to_iso8601(timestamp.a["title"].strip()) if timestamp and timestamp.a else ""
+                timestamp = tweet_body.find("span", class_="tweet-date")
+                tweet_data["created_at_datetime"] = ts_to_iso8601(timestamp.a["title"].strip()) if timestamp and timestamp.a else ""
 
-            link = tweet.find("a", class_="tweet-link")
-            tweet_data["link"] = link["href"] if link and link.has_attr("href") else ""
+                link = tweet.find("a", class_="tweet-link")
+                tweet_data["link"] = link["href"] if link and link.has_attr("href") else ""
+                
+                replying_to = tweet_body.find("div", class_="replying-to", recursive=False)
+                tweet_data["replying-to"] = [a.get_text(strip=True) for a in replying_to.find_all('a')] if replying_to else []
 
-            replying_to = tweet.find("div", class_="replying-to", recursive=False)
-            tweet_data["replying-to"] = [a.get_text(strip=True) for a in replying_to.find_all('a')] if replying_to else []
+                quote = tweet_body.find("div", class_="quote")
+                quote_user = quote.find("a", class_="username") if quote else None
+                tweet_data["quoting"] = quote_user.text.strip() if quote_user else ""
 
-            quote = tweet.find("div", class_="quote")
-            quote_user = quote.find("a", class_="username") if quote else None
-            tweet_data["quoting"] = quote_user.text.strip() if quote_user else ""
+                tweet_stat = tweet_body.find_all("span", class_="tweet-stat")
+                if len(tweet_stat) < 4:
+                    tweet_data["comments"] = 0
+                    tweet_data["retweets"] = 0
+                    tweet_data["quotes"] = 0
+                    tweet_data["likes"] = 0
+                else:
+                    tweet_data["comments"] = int(tweet_stat[0].div.text.strip().replace(",", "")) if tweet_stat[0].div.text.strip() else 0
+                    tweet_data["retweets"] = int(tweet_stat[1].div.text.strip().replace(",", "")) if tweet_stat[1].div.text.strip() else 0
+                    tweet_data["quotes"] = int(tweet_stat[2].div.text.strip().replace(",", "")) if tweet_stat[2].div.text.strip() else 0
+                    tweet_data["likes"] = int(tweet_stat[3].div.text.strip().replace(",", "")) if tweet_stat[3].div.text.strip() else 0
 
-            tweet_stat = tweet.find_all("span", class_="tweet-stat")
-            if len(tweet_stat) < 4:
-                tweet_data["comments"] = 0
-                tweet_data["retweets"] = 0
-                tweet_data["quotes"] = 0
-                tweet_data["likes"] = 0
-            else:
-                tweet_data["comments"] = int(tweet_stat[0].div.text.strip().replace(",", "")) if tweet_stat[0].div.text.strip() else 0
-                tweet_data["retweets"] = int(tweet_stat[1].div.text.strip().replace(",", "")) if tweet_stat[1].div.text.strip() else 0
-                tweet_data["quotes"] = int(tweet_stat[2].div.text.strip().replace(",", "")) if tweet_stat[2].div.text.strip() else 0
-                tweet_data["likes"] = int(tweet_stat[3].div.text.strip().replace(",", "")) if tweet_stat[3].div.text.strip() else 0
-
-            tweets.append(tweet_data)
+                tweets.append(tweet_data)
 
         cursor = None
         show_more = soup.find_all("div", class_="show-more")[-1] if soup.find_all("div", class_="show-more") else None
