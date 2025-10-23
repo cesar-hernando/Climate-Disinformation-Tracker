@@ -15,7 +15,7 @@ body {
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   width: 100%;
-  max-width: 480px;
+  max-width: 700px;
   text-align: center;
 }
 
@@ -67,6 +67,18 @@ input[type="number"]:focus {
   box-shadow: 0 0 5px rgba(52,152,219,0.3);
 }
 
+input[type="number"] {
+  max-width: 100px;
+}
+
+.basic-settings > div, .excludes-section {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 label {
   font-size: 14px;
   margin-top: 4px;
@@ -111,6 +123,11 @@ button:disabled {
   justify-content: center;
 }
 
+.basic-settings {
+  justify-content: space-evenly !important;
+  width: 100%;
+}
+
 /* Spinner styles */
 .spinner {
   width: 16px;
@@ -121,7 +138,7 @@ button:disabled {
   animation: spin 0.7s linear infinite;
 }
 
-.spinner_container {
+.spinner_container, .basic-settings {
     display: flex;
     gap: 0.5rem;
     justify-content: center;
@@ -167,7 +184,6 @@ select:focus {
   display: flex;
   flex-wrap: wrap;
   gap: 8px 16px;
-  margin-top: 6px;
 }
 
 .checkbox-group label, .synonyms label {
@@ -187,15 +203,20 @@ select:focus {
 
 /* Synonym options */
 #synonym-options {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 8px 16px;
   background: #f8f9fa;
   padding: 10px;
   border: 1px solid #ddd;
   border-radius: 8px;
-  max-width: 250px;
+  max-width: 400px;
   width: 100%;
+}
+
+#synonym-options div {
+  display: flex;
+  flex-direction: column;
 }
 
 #synonym-options label {
@@ -369,7 +390,7 @@ select:focus {
 .advanced-content.show {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 1rem;
   align-items: center;
   justify-content: center;
 }

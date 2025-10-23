@@ -43,47 +43,63 @@
           </label>
 
           <div id="synonym-options" style="display:none;">
-            <label for="model_name">Model:</label>
-            <select id="model_name" name="model_name">
-              <option value="en_core_web_md" selected>en_core_web_md</option>
-              <option value="en_core_web_lg">en_core_web_lg</option>
-            </select>
-
-            <label for="top_n_syns">Top N Synonyms:</label>
-            <input type="number" id="top_n_syns" value="4" min="1" max="10">
-
-            <label for="threshold">Similarity Threshold:</label>
-            <input type="number" id="threshold" value="0.1" step="0.05" min="0" max="1">
-
-            <label for="max_syns_per_kw">Max Synonyms per Keyword:</label>
-            <input type="number" id="max_syns_per_kw" value="2" min="1" max="10">
+            <div>
+              <label for="model_name">Model:</label>
+              <select id="model_name" name="model_name">
+                <option value="en_core_web_md" selected>en_core_web_md</option>
+                <option value="en_core_web_lg">en_core_web_lg</option>
+              </select>
+            </div>
+            
+            <div>
+              <label for="top_n_syns">Top N Synonyms:</label>
+              <input type="number" id="top_n_syns" value="4" min="1" max="10">
+            </div>
+            
+            <div>
+              <label for="threshold">Similarity Threshold:</label>
+              <input type="number" id="threshold" value="0.1" step="0.05" min="0" max="1">
+            </div>
+            
+            <div>
+              <label for="max_syns_per_kw">Max Synonyms per Keyword:</label>
+              <input type="number" id="max_syns_per_kw" value="2" min="1" max="10">
+            </div>
           </div>
 
-          <label for="max_keywords">Max Keywords</label>
-          <input type="number" id="max_keywords" value="5">
+          <div class="basic-settings">
+            <div>
+              <label for="max_keywords">Max Keywords</label>
+              <input type="number" id="max_keywords" value="5">
+            </div>            
 
-          <label for="n_keywords_dropped">Number of Keywords Dropped</label>
-          <input type="number" id="n_keywords_dropped" value="1">
+            <div>
+              <label for="n_keywords_dropped">Number of Keywords Dropped</label>
+              <input type="number" id="n_keywords_dropped" value="1">
+            </div>
 
-          <div style="display: flex;flex-direction: column;">
-            <label for="earliest_k">Earliest K</label>
-            <input type="number" id="earliest_k" value="0">
+            <div style="display: flex;flex-direction: column;">
+              <label for="earliest_k">Earliest K</label>
+              <input type="number" id="earliest_k" value="0">
+            </div>
           </div>
 
-          <label>Excludes</label>
-          <div id="excludes" class="checkbox-group">
-            <label><input type="checkbox" value="nativeretweets" checked> nativeretweets</label>
-            <label><input type="checkbox" value="media"> media</label>
-            <label><input type="checkbox" value="videos"> videos</label>
-            <label><input type="checkbox" value="news"> news</label>
-            <label><input type="checkbox" value="verified"> verified</label>
-            <label><input type="checkbox" value="native_video"> native_video</label>
-            <label><input type="checkbox" value="replies" checked> replies</label>
-            <label><input type="checkbox" value="links"> links</label>
-            <label><input type="checkbox" value="images"> images</label>
-            <label><input type="checkbox" value="safe"> safe</label>
-            <label><input type="checkbox" value="quote"> quote</label>
-            <label><input type="checkbox" value="pro_video"> pro_video</label>
+          <div class="excludes-section">
+            <label>Excludes</label>
+            <div id="excludes" class="checkbox-group">
+              <label><input type="checkbox" value="nativeretweets" checked> nativeretweets</label>
+              <label><input type="checkbox" value="media"> media</label>
+              <label><input type="checkbox" value="videos"> videos</label>
+              <label><input type="checkbox" value="news"> news</label>
+              <label><input type="checkbox" value="verified"> verified</label>
+              <label><input type="checkbox" value="native_video"> native_video</label>
+              <label><input type="checkbox" value="replies" checked> replies</label>
+              <label><input type="checkbox" value="links"> links</label>
+              <label><input type="checkbox" value="images"> images</label>
+              <label><input type="checkbox" value="safe"> safe</label>
+              <label><input type="checkbox" value="quote"> quote</label>
+              <label><input type="checkbox" value="pro_video"> pro_video</label>
+            </div>
           </div>
         </div>
       </div>
@@ -112,7 +128,7 @@
     });
 
     document.getElementById('use-synonyms').addEventListener('change', (e) => {
-      document.getElementById('synonym-options').style.display = e.target.checked ? 'block' : 'none';
+      document.getElementById('synonym-options').style.display = e.target.checked ? 'grid' : 'none';
     });
 
     document.querySelectorAll('input[name="mode"]').forEach((e) => {
