@@ -270,7 +270,7 @@ class SourceFinder:
 
                     # if src hasnt been found yet, check for entailments
                     if source_tweet is None:
-                        entailing_now = [t for t in take if t.get("alignment") == "entails"]
+                        entailing_now = [t for t in take if t.get("alignment") == 0]
                         if entailing_now:
                             source_tweet = entailing_now[0]  # take the earliest in this slice
                             source_tweet["is_source"] = True
