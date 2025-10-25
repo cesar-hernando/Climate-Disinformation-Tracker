@@ -1,6 +1,8 @@
 # Load model directly
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
+import time
+import random
 
 
 class AlignmentModel:
@@ -84,12 +86,54 @@ class AlignmentModel:
     
 
 if __name__ == "__main__":
+    #model = AlignmentModel()
+    #claim = "Climate change is just caused by natural cycles of the sun"
+    #tweets = [
+    #    {"text": "The sun's cycles are responsible for climate change.", "created_at_datetime": "2020-01-01"},
+    #    {"text": "Climate change is just caused by natural cycles of the sun.", "created_at_datetime": "2019-07-01"},
+    #    {"text": "Climate change is a complex issue with multiple factors.", "created_at_datetime": "2019-01-01"},
+    #]
+    #print(model.device)
+    #print(model.batch_predict(claim, tweets, verbose=True))
+
     model = AlignmentModel()
-    claim = "Climate change is just caused by natural cycles of the sun"
-    tweets = [
-        {"text": "The sun's cycles are responsible for climate change.", "created_at_datetime": "2020-01-01"},
-        {"text": "Climate change is just caused by natural cycles of the sun.", "created_at_datetime": "2019-07-01"},
-        {"text": "Climate change is a complex issue with multiple factors.", "created_at_datetime": "2019-01-01"},
+
+    claim = "Electric vehicles are worse for the environment than gasoline cars."
+
+    # Generate 100 synthetic tweets
+    topics = ["EVs", "electric cars", "gasoline cars", "environment", "pollution", "batteries", "carbon footprint"]
+    templates = [
+        "I think {} are great for the planet!",
+        "{} are definitely worse for nature.",
+        "People exaggerate how bad {} are.",
+        "The impact of {} depends on how electricity is produced.",
+        "{} will dominate the future market.",
+        "We should compare {} and gasoline cars fairly."
     ]
-    print(model.device)
-    print(model.batch_predict(claim, tweets, verbose=True))
+
+    tweets = [
+        {"text": random.choice(templates).format(random.choice(topics)), "created_at_datetime": f"2020-01-{i+1:02d}"}
+        for i in range(1000)
+    ]
+
+    print(f"\nRunning on device: {model.device}\n")
+
+    # --- Method 1: Looping over predict() ---
+    start_time = time.time()
+    labels_loop = [model.predict(claim, t["text"]) for t in tweets]
+    time_loop = time.time() - start_time
+
+    # --- Method 2: Using batch_predict() ---
+    start_time = time.time()
+    labels_batch = model.batch_predict(claim, tweets)
+    time_batch = time.time() - start_time
+
+    # --- Results ---
+    print(f"\nResults comparison:")
+    print(f"  predict() loop time: {time_loop:.2f} seconds")
+    print(f"  batch_predict() time: {time_batch:.2f} seconds")
+    print(f"  Speed-up factor: {time_loop / time_batch:.2f}x faster with batching")
+
+    # Sanity check
+    print(f"\nNumber of predictions (loop): {len(labels_loop)}")
+    print(f"Number of predictions (batch): {len(labels_batch)}")
