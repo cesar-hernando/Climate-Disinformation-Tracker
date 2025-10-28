@@ -33,13 +33,12 @@
       </div>
 
       <div class="mode-selection">
-        <div>
+        <div class="segment-control">
           <input type="radio" id="find_source" name="mode" value="find_source" checked>
-          <label for="find_source">Find Source</label>
-        </div>
-        <div>
+          <label for="find_source">Find First Related Tweet</label>
+          
           <input type="radio" id="find_all" name="mode" value="find_all">
-          <label for="find_all">Find All</label>
+          <label for="find_all">Find All Related Tweets</label>
         </div>
       </div>
 
@@ -305,6 +304,7 @@
           const data = result[0];
           const earliest_batch = result[1];
           resultDiv.innerHTML = `
+            <h3>First Related Tweet Found:</h3>
             <div class="result-card">
               <p><strong>User:</strong> ${data.user}</p>
               <p><strong>Text:</strong> ${data.text}</p>
@@ -318,7 +318,7 @@
           // If earliest_batch is available, show it
           if (earliest_batch && earliest_batch.length > 0) {
             const earliestDiv = document.createElement('div');
-            earliestDiv.innerHTML = '<h3>Earliest ' + params.earliest_k + ' Tweets:</h3>';
+            earliestDiv.innerHTML = '<h3 style="text-align: center;">Earliest ' + params.earliest_k + ' Tweets:</h3>';
             earliest_batch.forEach(tweet => {
               const tweetDiv = document.createElement('div');
               tweetDiv.classList.add('result-card');

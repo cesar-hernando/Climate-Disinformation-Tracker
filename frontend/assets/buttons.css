@@ -31,12 +31,12 @@ button:disabled {
 }
 
 #add-synonym-btn:hover {
-  background-color: #005fa3;
+  background-color: #2980b9;
 }
 
 /* Toggle button styling */
 .toggle-btn {
-  background-color: #007bff;
+  background-color: #3498db;
   color: white;
   border: none;
   padding: 8px 12px;
@@ -48,7 +48,7 @@ button:disabled {
 }
 
 .toggle-btn:hover {
-  background-color: #0056b3;
+  background-color: #2980b9;
 }
 
 #analyzeBtn {

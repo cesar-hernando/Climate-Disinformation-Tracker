@@ -62,7 +62,6 @@ label {
   font-size: 14px;
   color: #333;
   align-items: center;
-  gap: 10px;
   word-wrap: break-word;
   justify-content: center;
   max-height: 0;
@@ -116,6 +115,39 @@ label {
   color: #333;
   font-weight: 600;
 }
+
+/* Segmented button styling */
+.segment-control {
+  display: inline-flex;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  overflow: hidden;
+  gap: 0 !important;
+}
+
+.segment-control input[type="radio"] {
+  display: none;
+}
+
+.segment-control label {
+  padding: 8px 16px;
+  cursor: pointer;
+  background: #f8f9fa;
+  color: #333;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  margin: 0;
+}
+
+.segment-control label:hover {
+  background: #e2e6ea;
+}
+
+.segment-control input[type="radio"]:checked + label {
+  background: #3498db;
+  color: white;
+}
+
 
 /* Responsive adjustments */
 @media (max-width: 600px) {
