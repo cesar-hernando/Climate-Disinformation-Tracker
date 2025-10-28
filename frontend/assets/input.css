@@ -89,3 +89,7 @@ select:focus {
 #synonym-input:focus {
   border-color: #007acc;
 }
+
+input[type="checkbox"] {
+  transform: scale(1.1);
+}

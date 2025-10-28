@@ -48,11 +48,11 @@
           ⚙️ Advanced Settings <span id="arrow">▼</span>
         </button>
         <div id="advancedContent" class="advanced-content">
-          <label>
+          <label id="use-synonyms-label" style="margin-bottom: -2.5rem;">
             <input type="checkbox" id="use-synonyms" name="synonyms"> Use Synonyms
           </label>
 
-          <div id="synonym-options" style="display:none;">
+          <div id="synonym-options">
             <div>
               <label for="model_name">Model:</label>
               <select id="model_name" name="model_name">
@@ -120,13 +120,13 @@
     </form>
 
     <!-- Dynamic synonym section -->
-    <div id="synonymSection" style="display:none;">
+    <div id="synonymSection">
       <h3>Select Synonyms</h3>
       <div id="synonymList"></div>
       <button id="continueBtn" type="button">Continue</button>
     </div>
 
-    <div id="result" style="display:none;"></div>
+    <div id="result"></div>
   </div>
 
   <script>
@@ -142,7 +142,9 @@
     });
 
     document.getElementById('use-synonyms').addEventListener('change', (e) => {
-      document.getElementById('synonym-options').style.display = e.target.checked ? 'grid' : 'none';
+      const synonymOptions = document.getElementById('synonym-options');
+      synonymOptions.classList.toggle('show');
+      document.getElementById('use-synonyms-label').style.marginBottom = e.target.checked ? '0' : '-2.5rem';
     });
 
     document.querySelectorAll('input[name="mode"]').forEach((e) => {
@@ -157,7 +159,8 @@
 
     document.getElementById('detectForm').addEventListener('submit', async function(e) {
       e.preventDefault();
-      resultDiv.style.display = 'flex';
+      // resultDiv.style.display = 'flex';
+      resultDiv.classList.add('show');
       resultDiv.innerHTML = '<div class="spinner_container"><div class="spinner"></div> Running analysis...</div>';
       analyzeBtn.disabled = true;
 
@@ -205,8 +208,10 @@
 
     function displaySynonymOptions(synonyms) {
       synonymList.innerHTML = '';
-      synonymSection.style.display = 'block';
-      resultDiv.style.display = 'none';
+      // synonymSection.style.display = 'block';
+      synonymSection.classList.add('show');
+      // resultDiv.style.display = 'none';
+      resultDiv.classList.remove('show');
 
       for (const [kw, syns] of Object.entries(synonyms)) {
         const block = document.createElement('div');
@@ -277,12 +282,14 @@
 
       cachedParams["selected_synonyms"] = selections;
       cachedParams["keywords"] = cachedKeywords;
-      synonymSection.style.display = 'none';
+      // synonymSection.style.display = 'none';
+      synonymSection.classList.remove('show');
       await performAnalysis(cachedParams);
     });
 
     async function performAnalysis(params) {
-      resultDiv.style.display = 'flex';
+      // resultDiv.style.display = 'flex';
+      resultDiv.classList.add('show');
       resultDiv.innerHTML = '<div class="spinner_container"><div class="spinner"></div> Running analysis...</div>';
 
       const response = await fetch('http://127.0.0.1:8000/api/analyze', {
