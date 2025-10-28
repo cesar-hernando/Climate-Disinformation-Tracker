@@ -36,8 +36,10 @@
       </div>
 
       <div class="advanced-settings">
-        <button type="button" id="toggleAdvanced" class="toggle-btn">⚙️ Advanced Settings</button>
-        <div id="advancedContent" class="advanced-content" hidden>
+        <button type="button" id="toggleAdvanced" class="toggle-btn">
+          ⚙️ Advanced Settings <span id="arrow">▼</span>
+        </button>
+        <div id="advancedContent" class="advanced-content">
           <label>
             <input type="checkbox" id="use-synonyms" name="synonyms"> Use Synonyms
           </label>
@@ -124,7 +126,9 @@
     const synonymList = document.getElementById('synonymList');
 
     document.getElementById('toggleAdvanced').addEventListener('click', () => {
-      document.getElementById('advancedContent').classList.toggle('show');
+      const advancedContent = document.getElementById('advancedContent');
+      advancedContent.classList.toggle('show');
+      document.getElementById('arrow').style.transform = advancedContent.classList.contains('show') ? 'rotate(180deg)' : 'rotate(0deg)';
     });
 
     document.getElementById('use-synonyms').addEventListener('change', (e) => {
