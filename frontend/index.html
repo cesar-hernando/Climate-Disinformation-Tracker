@@ -4,10 +4,66 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Source Tracker</title>
-  <link rel="stylesheet" href="static/style.css">
+  
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="static/main.css">
+  <link rel="stylesheet" href="static/assets/animations.css">
+  <link rel="stylesheet" href="static/assets/advanced-settings.css">
+  <link rel="stylesheet" href="static/assets/buttons.css">
+  <link rel="stylesheet" href="static/assets/info_overlay.css">
+  <link rel="stylesheet" href="static/assets/input.css">
+  <link rel="stylesheet" href="static/assets/synonyms.css">
+  <link rel="stylesheet" href="static/assets/tags.css">
 </head>
 <body>
+  <!-- Info Overlay -->
+  <div id="info-overlay">
+    <div id="info-content">
+      <span id="close-info">&times;</span>
+      <h2>Tool Overview</h2>
+      <p>
+        The Source Finder traces the earliest online appearance of a claim on X/Twitter, showing when and by whom it first appeared.
+        When retrieving all tweets, it provides a dashboard to visualize how the claim spread and gained engagement over time.
+        Here, the <strong>source</strong> refers to the earliest retrievable tweet that semantically matches the claim, not necessarily the true origin.
+      </p>
+      <h2>How to Use the Tool</h2>
+      <p style="margin-bottom: 0;">
+        1. Enter a <strong>claim or text</strong> to be investigated in the input box.<br>
+        2. Choose a mode:
+      </p>  
+      <ul style="margin:0;">
+        <li><strong>Find First Related Tweet</strong> retrieves the earliest tweet supporting the claim.</li>
+        <li><strong>Find All Related Tweets</strong> shows a dashboard of all related tweets and their activity.</li>
+      </ul>
+      <p style="margin-top:0;">
+        3. Optionally configure a date range as well as further parameters in <strong>Advanced Settings</strong>.<br>
+        4. Enable <strong>“Use Synonyms”</strong> if you would like broader search coverage. During processing (if selected), you will be prompted to select synonyms for your claim, or provide your own.<br>
+        5. Click <strong>Analyze</strong> to begin — results will appear below or shown in the dashboard depending on your selected <strong>mode</strong>.<br>
+      </p>
+      <h2>Optional Parameter Information</h2>
+      <ul>
+        <li><strong>Initial date and final date</strong> - The time span to search through.</li>
+        <li><strong>Max keywords</strong> - The maximum number of keywords extracted from the claim.</li>
+        <li><strong>Number of keywords dropped</strong> - The number of keywords removed when generating query combinations.</li>
+        <li><strong>Use Synonyms</strong> - Enables synonym expansion.</li>
+        <li><strong>Model</strong> - The language model used for synonym extraction.</li>
+        <li><strong>Top N Synonyms</strong> - The number of top similar words to consider as synonyms for each keyword.</li>
+        <li><strong>Similarity Threshold</strong> - The minimum similarity score for a word to be considered a synonym.</li>
+        <li><strong>Earliest k</strong> - The number of earliest tweets to retrieve, regardless of alignment with the claim.</li>
+        <li><strong>Excludes</strong> - filters to exclude (e.g., to skip retweets or replies).</li>
+      </ul>
+      <!-- <p> -->
+        For more information on the tool, please check out the <a href="https://github.com/vincentvvliet/climate-disinformation-detector/tree/master/frontend">documentation</a>.
+      <!-- </p> -->
+    </div>
+  </div>
+
   <div class="container">
+    <div id="info-icon" title="How to use the tool">
+      <span>
+        <img src="static/assets/info_icon.png"></img>
+      </span>
+    </div>
     <h2>Source Tracker</h2>
 
     <form id="detectForm">
@@ -27,78 +83,98 @@
       <div class="mode-selection">
         <div>
           <input type="radio" id="find_source" name="mode" value="find_source" checked>
-          <label for="find_source">Find Source</label>
+          <label for="find_source">Find First Related Tweet</label>
         </div>
         <div>
           <input type="radio" id="find_all" name="mode" value="find_all">
-          <label for="find_all">Find All</label>
+          <label for="find_all">Find All Related Tweets</label>
         </div>
       </div>
 
       <div class="advanced-settings">
-        <button type="button" id="toggleAdvanced" class="toggle-btn">⚙️ Advanced Settings</button>
-        <div id="advancedContent" class="advanced-content" hidden>
-          <label>
+        <button type="button" id="toggleAdvanced" class="toggle-btn">
+          ⚙️ Advanced Settings <span id="arrow">▼</span>
+        </button>
+        <div id="advancedContent" class="advanced-content">
+          <label id="use-synonyms-label" style="margin-bottom: -2.5rem;">
             <input type="checkbox" id="use-synonyms" name="synonyms"> Use Synonyms
           </label>
 
-          <div id="synonym-options" style="display:none;">
-            <label for="model_name">Model:</label>
-            <select id="model_name" name="model_name">
-              <option value="en_core_web_md" selected>en_core_web_md</option>
-              <option value="en_core_web_lg">en_core_web_lg</option>
-            </select>
-
-            <label for="top_n_syns">Top N Synonyms:</label>
-            <input type="number" id="top_n_syns" value="4" min="1" max="10">
-
-            <label for="threshold">Similarity Threshold:</label>
-            <input type="number" id="threshold" value="0.1" step="0.05" min="0" max="1">
-
-            <label for="max_syns_per_kw">Max Synonyms per Keyword:</label>
-            <input type="number" id="max_syns_per_kw" value="2" min="1" max="10">
+          <div id="synonym-options">
+            <div>
+              <label for="model_name">Model:</label>
+              <select id="model_name" name="model_name">
+                <option value="en_core_web_md" selected>en_core_web_md</option>
+                <option value="en_core_web_lg">en_core_web_lg</option>
+              </select>
+            </div>
+            
+            <div>
+              <label for="top_n_syns">Top N Synonyms:</label>
+              <input type="number" id="top_n_syns" value="4" min="1" max="10">
+            </div>
+            
+            <div>
+              <label for="threshold">Similarity Threshold:</label>
+              <input type="number" id="threshold" value="0.1" step="0.05" min="0" max="1">
+            </div>
+            
+            <div>
+              <label for="max_syns_per_kw">Max Synonyms per Keyword:</label>
+              <input type="number" id="max_syns_per_kw" value="2" min="1" max="10">
+            </div>
           </div>
 
-          <label for="max_keywords">Max Keywords</label>
-          <input type="number" id="max_keywords" value="5">
+          <div class="basic-settings">
+            <div>
+              <label for="max_keywords">Max Keywords</label>
+              <input type="number" id="max_keywords" value="5">
+            </div>            
 
-          <label for="n_keywords_dropped">Number of Keywords Dropped</label>
-          <input type="number" id="n_keywords_dropped" value="1">
+            <div>
+              <label for="n_keywords_dropped">Number of Keywords Dropped</label>
+              <input type="number" id="n_keywords_dropped" value="1">
+            </div>
 
-          <div style="display: flex;flex-direction: column;">
-            <label for="earliest_k">Earliest K</label>
-            <input type="number" id="earliest_k" value="0">
+            <div style="display: flex;flex-direction: column;">
+              <label for="earliest_k">Earliest K Tweets</label>
+              <input type="number" id="earliest_k" value="0">
+            </div>
           </div>
 
-          <label>Excludes</label>
-          <div id="excludes" class="checkbox-group">
-            <label><input type="checkbox" value="nativeretweets" checked> nativeretweets</label>
-            <label><input type="checkbox" value="media"> media</label>
-            <label><input type="checkbox" value="videos"> videos</label>
-            <label><input type="checkbox" value="news"> news</label>
-            <label><input type="checkbox" value="verified"> verified</label>
-            <label><input type="checkbox" value="native_video"> native_video</label>
-            <label><input type="checkbox" value="replies" checked> replies</label>
-            <label><input type="checkbox" value="links"> links</label>
-            <label><input type="checkbox" value="images"> images</label>
-            <label><input type="checkbox" value="safe"> safe</label>
-            <label><input type="checkbox" value="quote"> quote</label>
-            <label><input type="checkbox" value="pro_video"> pro_video</label>
+          <div class="excludes-section">
+            <label>Excludes</label>
+            <div id="excludes" class="checkbox-group">
+              <label><input type="checkbox" value="nativeretweets" checked> nativeretweets</label>
+              <label><input type="checkbox" value="media"> media</label>
+              <label><input type="checkbox" value="videos"> videos</label>
+              <label><input type="checkbox" value="news"> news</label>
+              <label><input type="checkbox" value="verified"> verified</label>
+              <label><input type="checkbox" value="native_video"> native_video</label>
+              <label><input type="checkbox" value="replies" checked> replies</label>
+              <label><input type="checkbox" value="links"> links</label>
+              <label><input type="checkbox" value="images"> images</label>
+              <label><input type="checkbox" value="safe"> safe</label>
+              <label><input type="checkbox" value="quote"> quote</label>
+              <label><input type="checkbox" value="pro_video"> pro_video</label>
+            </div>
           </div>
         </div>
       </div>
 
-      <button type="submit" id="analyzeBtn">Analyze</button>
+      <div style="display: flex; justify-content: center; align-items: center;">
+        <button type="submit" id="analyzeBtn">Analyze</button>
+      </div>
     </form>
 
     <!-- Dynamic synonym section -->
-    <div id="synonymSection" style="display:none;">
+    <div id="synonymSection">
       <h3>Select Synonyms</h3>
       <div id="synonymList"></div>
       <button id="continueBtn" type="button">Continue</button>
     </div>
 
-    <div id="result" style="display:none;"></div>
+    <div id="result"></div>
   </div>
 
   <script>
@@ -108,11 +184,15 @@
     const synonymList = document.getElementById('synonymList');
 
     document.getElementById('toggleAdvanced').addEventListener('click', () => {
-      document.getElementById('advancedContent').classList.toggle('show');
+      const advancedContent = document.getElementById('advancedContent');
+      advancedContent.classList.toggle('show');
+      document.getElementById('arrow').style.transform = advancedContent.classList.contains('show') ? 'rotate(180deg)' : 'rotate(0deg)';
     });
 
     document.getElementById('use-synonyms').addEventListener('change', (e) => {
-      document.getElementById('synonym-options').style.display = e.target.checked ? 'block' : 'none';
+      const synonymOptions = document.getElementById('synonym-options');
+      synonymOptions.classList.toggle('show');
+      document.getElementById('use-synonyms-label').style.marginBottom = e.target.checked ? '0' : '-2.5rem';
     });
 
     document.querySelectorAll('input[name="mode"]').forEach((e) => {
@@ -120,6 +200,25 @@
         document.getElementById('earliest_k').parentElement.style.display = (this.value === 'find_source') ? 'flex' : 'none';
       });
     });
+    
+    // Info overlay functionality
+    const infoOverlay = document.getElementById('info-overlay');
+
+    document.getElementById('info-icon').addEventListener('click', () => {
+      infoOverlay.classList.add('show');
+    });
+
+    document.getElementById('close-info').addEventListener('click', () => {
+      infoOverlay.classList.remove('show');
+    });
+
+    infoOverlay.addEventListener('click', (e) => {
+      // Close if clicked outside the content box
+      if (e.target === infoOverlay) {
+        infoOverlay.classList.remove('show');
+      }
+    });
+
 
     let cachedParams = {};
     let cachedSynonyms = {};
@@ -127,7 +226,8 @@
 
     document.getElementById('detectForm').addEventListener('submit', async function(e) {
       e.preventDefault();
-      resultDiv.style.display = 'flex';
+      // resultDiv.style.display = 'flex';
+      resultDiv.classList.add('show');
       resultDiv.innerHTML = '<div class="spinner_container"><div class="spinner"></div> Running analysis...</div>';
       analyzeBtn.disabled = true;
 
@@ -175,8 +275,10 @@
 
     function displaySynonymOptions(synonyms) {
       synonymList.innerHTML = '';
-      synonymSection.style.display = 'block';
-      resultDiv.style.display = 'none';
+      // synonymSection.style.display = 'block';
+      synonymSection.classList.add('show');
+      // resultDiv.style.display = 'none';
+      resultDiv.classList.remove('show');
 
       for (const [kw, syns] of Object.entries(synonyms)) {
         const block = document.createElement('div');
@@ -247,12 +349,14 @@
 
       cachedParams["selected_synonyms"] = selections;
       cachedParams["keywords"] = cachedKeywords;
-      synonymSection.style.display = 'none';
+      // synonymSection.style.display = 'none';
+      synonymSection.classList.remove('show');
       await performAnalysis(cachedParams);
     });
 
     async function performAnalysis(params) {
-      resultDiv.style.display = 'flex';
+      // resultDiv.style.display = 'flex';
+      resultDiv.classList.add('show');
       resultDiv.innerHTML = '<div class="spinner_container"><div class="spinner"></div> Running analysis...</div>';
 
       const response = await fetch('http://127.0.0.1:8000/api/analyze', {
@@ -268,6 +372,7 @@
           const data = result[0];
           const earliest_batch = result[1];
           resultDiv.innerHTML = `
+            <h3>First Related Tweet Found:</h3>
             <div class="result-card">
               <p><strong>User:</strong> ${data.user}</p>
               <p><strong>Text:</strong> ${data.text}</p>
@@ -281,7 +386,7 @@
           // If earliest_batch is available, show it
           if (earliest_batch && earliest_batch.length > 0) {
             const earliestDiv = document.createElement('div');
-            earliestDiv.innerHTML = '<h3>Earliest ' + params.earliest_k + ' Tweets:</h3>';
+            earliestDiv.innerHTML = '<h3 style="text-align: center;">Earliest ' + params.earliest_k + ' Tweets:</h3>';
             earliest_batch.forEach(tweet => {
               const tweetDiv = document.createElement('div');
               tweetDiv.classList.add('result-card');
