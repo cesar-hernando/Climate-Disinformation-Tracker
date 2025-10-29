@@ -10,12 +10,60 @@
   <link rel="stylesheet" href="static/assets/animations.css">
   <link rel="stylesheet" href="static/assets/advanced-settings.css">
   <link rel="stylesheet" href="static/assets/buttons.css">
+  <link rel="stylesheet" href="static/assets/info_overlay.css">
   <link rel="stylesheet" href="static/assets/input.css">
   <link rel="stylesheet" href="static/assets/synonyms.css">
   <link rel="stylesheet" href="static/assets/tags.css">
 </head>
 <body>
+  <!-- Info Overlay -->
+  <div id="info-overlay">
+    <div id="info-content">
+      <span id="close-info">&times;</span>
+      <h2>Tool Overview</h2>
+      <p>
+        The Source Finder traces the earliest online appearance of a claim on X/Twitter, showing when and by whom it first appeared.
+        When retrieving all tweets, it provides a dashboard to visualize how the claim spread and gained engagement over time.
+        Here, the <strong>source</strong> refers to the earliest retrievable tweet that semantically matches the claim, not necessarily the true origin.
+      </p>
+      <h2>How to Use the Tool</h2>
+      <p style="margin-bottom: 0;">
+        1. Enter a <strong>claim or text</strong> to be investigated in the input box.<br>
+        2. Choose a mode:
+      </p>  
+      <ul style="margin:0;">
+        <li><strong>Find First Related Tweet</strong> retrieves the earliest tweet supporting the claim.</li>
+        <li><strong>Find All Related Tweets</strong> shows a dashboard of all related tweets and their activity.</li>
+      </ul>
+      <p style="margin-top:0;">
+        3. Optionally configure a date range as well as further parameters in <strong>Advanced Settings</strong>.<br>
+        4. Enable <strong>“Use Synonyms”</strong> if you would like broader search coverage. During processing (if selected), you will be prompted to select synonyms for your claim, or provide your own.<br>
+        5. Click <strong>Analyze</strong> to begin — results will appear below or shown in the dashboard depending on your selected <strong>mode</strong>.<br>
+      </p>
+      <h2>Optional Parameter Information</h2>
+      <ul>
+        <li><strong>Initial date and final date</strong> - The time span to search through.</li>
+        <li><strong>Max keywords</strong> - The maximum number of keywords extracted from the claim.</li>
+        <li><strong>Number of keywords dropped</strong> - The number of keywords removed when generating query combinations.</li>
+        <li><strong>Use Synonyms</strong> - Enables synonym expansion.</li>
+        <li><strong>Model</strong> - The language model used for synonym extraction.</li>
+        <li><strong>Top N Synonyms</strong> - The number of top similar words to consider as synonyms for each keyword.</li>
+        <li><strong>Similarity Threshold</strong> - The minimum similarity score for a word to be considered a synonym.</li>
+        <li><strong>Earliest k</strong> - The number of earliest tweets to retrieve, regardless of alignment with the claim.</li>
+        <li><strong>Excludes</strong> - filters to exclude (e.g., to skip retweets or replies).</li>
+      </ul>
+      <!-- <p> -->
+        For more information on the tool, please check out the <a href="https://github.com/vincentvvliet/climate-disinformation-detector">documentation</a>.
+      <!-- </p> -->
+    </div>
+  </div>
+
   <div class="container">
+    <div id="info-icon" title="How to use the tool">
+      <span>
+        <img src="static/assets/info_icon.png"></img>
+      </span>
+    </div>
     <h2>Source Tracker</h2>
 
     <form id="detectForm">
@@ -152,6 +200,25 @@
         document.getElementById('earliest_k').parentElement.style.display = (this.value === 'find_source') ? 'flex' : 'none';
       });
     });
+    
+    // Info overlay functionality
+    const infoOverlay = document.getElementById('info-overlay');
+
+    document.getElementById('info-icon').addEventListener('click', () => {
+      infoOverlay.classList.add('show');
+    });
+
+    document.getElementById('close-info').addEventListener('click', () => {
+      infoOverlay.classList.remove('show');
+    });
+
+    infoOverlay.addEventListener('click', (e) => {
+      // Close if clicked outside the content box
+      if (e.target === infoOverlay) {
+        infoOverlay.classList.remove('show');
+      }
+    });
+
 
     let cachedParams = {};
     let cachedSynonyms = {};
