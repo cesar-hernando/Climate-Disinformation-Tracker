@@ -1,6 +1,6 @@
-# Source Tracker Frontend
-The Source Finder is a tool designed to trace the earliest online appearance of an input
-disinformation claim - particularly those related to climate change. It assists the general public
+# Climate Disinformation Tracker Frontend
+The Climate Disinformation Tracker is a tool designed to trace the earliest online appearance of an input
+disinformation claim - particularly those related to climate change. Note that it is also possible to search for claims about other topics, but our main interests lie with climate change. It assists the general public
 and researchers in understanding when and by whom a particular claim first appeared - allowing
 them to also see how it evolved over time.
 
