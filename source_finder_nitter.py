@@ -29,6 +29,12 @@ from query_generator import QueryGenerator
 from alignment import AlignmentModel
 from query_builder_synonyms import SynonymQueryBuilder
 
+# import sys
+
+# if sys.platform.startswith("win"):
+#     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+
 class SourceFinder:
     def __init__(self, max_keywords=5, n_keywords_dropped=2, excludes={"nativeretweets", "replies"}):
         self.max_keywords = max_keywords # Maximum number of keywords extracted by KeyBert
@@ -118,7 +124,7 @@ class SourceFinder:
                 keywords = query_builder.keywords
                 query = query_builder.run()
             else:
-                query = query_builder.build_boolean_query(user_choices)
+                query = query_builder.build_boolean_query(user_choices or {})
         else:
             query_generator = QueryGenerator(claim)
             keywords = query_generator.extract_keywords(max_keywords=self.max_keywords)
@@ -223,8 +229,10 @@ class SourceFinder:
 
             while start_y <= final_year:
                 # if buffer is full, break
-                if earliest_k > 0 and len(earliest_buf) >= earliest_k and source_tweet is not None:
+                if (earliest_k == 0 and source_tweet is not None) or (earliest_k > 0 and len(earliest_buf) >= earliest_k and source_tweet is not None):
                     break
+                # if earliest_k > 0 and len(earliest_buf) >= earliest_k and source_tweet is not None:
+                #     break
 
                 since = f"{start_y}{initial_date[4:]}"
                 until = f"{end_y}{initial_date[4:]}"
@@ -306,10 +314,13 @@ class SourceFinder:
                 return None, None, earliest_buf
             return None, None
 
-        if earliest_k > 0:
-            return source_tweet, (source_aligned_batch or [source_tweet]), earliest_buf
-        else:
-            return source_tweet, (source_aligned_batch or [source_tweet])
+        return source_tweet, (source_aligned_batch or [source_tweet]), earliest_buf
+
+
+        # if earliest_k > 0:
+        #     return source_tweet, (source_aligned_batch or [source_tweet]), earliest_buf
+        # else:
+        #     return source_tweet, (source_aligned_batch or [source_tweet])
 
 
     async def find_source_high_volume(self, claim, initial_date="", final_date="", step_years=1, synonyms=True, dev_mode=False,
@@ -498,7 +509,7 @@ if __name__ == "__main__":
                 final_date=final_date,
                 step=step,
                 synonyms=True,
-                earliest_k=150,         # <<< just this
+                earliest_k=10,         # <<< just this
             )
 
             # print source (if found)
