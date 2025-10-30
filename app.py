@@ -13,12 +13,6 @@ from query_builder_synonyms import SynonymQueryBuilder
 # Import backend pipeline
 from source_finder_nitter import SourceFinder
 
-# import sys
-# import asyncio
-
-# if sys.platform.startswith("win"):
-#     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-
 app = FastAPI(title="Climate Disinformation Detector API")
 
 app.add_middleware(

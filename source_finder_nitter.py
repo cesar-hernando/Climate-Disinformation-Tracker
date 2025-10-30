@@ -29,11 +29,6 @@ from query_generator import QueryGenerator
 from alignment import AlignmentModel
 from query_builder_synonyms import SynonymQueryBuilder
 
-# import sys
-
-# if sys.platform.startswith("win"):
-#     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-
 
 class SourceFinder:
     def __init__(self, max_keywords=5, n_keywords_dropped=2, excludes={"nativeretweets", "replies"}):
