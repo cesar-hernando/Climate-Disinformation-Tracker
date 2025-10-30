@@ -13,7 +13,7 @@ def Navbar(claim_text, path=None):
 
             # Center: Title + Claim stacked vertically
             html.Div([
-                html.Div("Source Tracker", className="navbar-title"),
+                html.Div("Climate Disinformation Tracker", className="navbar-title"),
                 html.Div(claim_text, className="navbar-claim"),
             ], className="navbar-center"),
 
