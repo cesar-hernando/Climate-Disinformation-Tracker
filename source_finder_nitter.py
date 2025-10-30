@@ -504,7 +504,8 @@ if __name__ == "__main__":
                 final_date=final_date,
                 step=step,
                 synonyms=True,
-                earliest_k=10,         # <<< just this
+                earliest_k=10,         # <<< just this\
+                dev_mode=True
             )
 
             # print source (if found)
