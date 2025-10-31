@@ -20,7 +20,7 @@ It further has the option to analyze all tweets and create a visualization.
 - `visualization/`: Contains files to create visualization of tweets using Dash
 
 ## Developer Workflows
-- **Requirments:**
+- **Requirements:**
   ```
   python >= 3.11
   ```
@@ -54,4 +54,4 @@ uvicorn app:app
 - To adjust scraping filters, edit the `excludes`/`filters` in `SourceFinder` or `ScraperNitter`.
 
 ---
-For questions or unclear conventions, review the orchestrator (`SourceFinder`), or ask for clarification.
+For questions or unclear conventions, review the orchestrator (`SourceFinder`), or ask for clarification. Further information on the frontend can be found in `/frontend`
