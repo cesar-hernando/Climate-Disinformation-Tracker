@@ -33,8 +33,6 @@ class QueryGenerator:
              return " ".join(keywords)
                
         queries = []
-        for i in range(len(keywords) - n_keywords_dropped, len(keywords)):
-            for combo in combinations(keywords, i):
-                queries.append("(" + " AND ".join(combo) + ")")
-
+        for combo in combinations(keywords, len(keywords) - n_keywords_dropped):
+            queries.append("(" + " AND ".join(combo) + ")")
         return " OR ".join(queries)
