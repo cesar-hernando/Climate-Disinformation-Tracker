@@ -137,6 +137,10 @@ class SourceFinder:
         ind_replies = "_no_replies" if "replies" in self.excludes else ""
         filename = data_dir + "_".join(keywords) + f'_kpc_{self.max_keywords - self.n_keywords_dropped}_{initial_date}_to_{final_date}{ind_syns}{ind_replies}.csv' # kpc stands for keywords per clause
 
+        # Check that data exists
+        if not os.path.exists("data"):
+            os.makedirs("data")
+        
         if os.path.exists(filename):
             print(f"\nFile {filename} already exists.\n")
             return filename, None   
