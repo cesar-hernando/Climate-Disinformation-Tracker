@@ -1,5 +1,17 @@
 # Climate disinformation tracker
 
+This project is part of the Joint Interdisciplinary Project (JIP), organized by TU Delft. JIP brings together students from different faculties
+to work in a two-months project in collaboration with a company. Our client was the Dutch National Police and the team combined the following expertise:
+- César Hernando de la Fuente: Quantum Information Science and Technology
+- Kasper Trouwee: Management of Technology
+- María Paula Jiménez Moreno: Quantum Information Science and Technology
+- Manya Atul Narkar: Computer Science
+- Shirley Li: Data Science
+- Vincent van Vliet: Computer Science
+- Amir Niknam (Supervisor): Policeman, with background in Applied Cognitive Psychology 
+
+
+
 ## Project Overview
 This project detects the origins and spread of climate-related disinformation on Twitter/X by:
 - Extracting keywords from claims using KeyBERT
